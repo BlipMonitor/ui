@@ -1,10 +1,9 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import { useHotkeys } from 'react-hotkeys-hook';
 import {
-	AudioWaveform,
-	Command,
-	GalleryVerticalEnd,
 	Settings2,
 	LayoutDashboard,
 	Activity,
@@ -14,7 +13,7 @@ import {
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { TeamSwitcher } from '@/components/team-switcher';
+import { ContractSwitcher } from '@/components/contract-switcher';
 import {
 	Sidebar,
 	SidebarContent,
@@ -30,60 +29,77 @@ const data = {
 		email: 'm@example.com',
 		avatar: '/avatars/shadcn.jpg',
 	},
-	teams: [
-		{
-			name: 'Acme Inc',
-			logo: GalleryVerticalEnd,
-			plan: 'Enterprise',
-		},
-		{
-			name: 'Acme Corp.',
-			logo: AudioWaveform,
-			plan: 'Startup',
-		},
-		{
-			name: 'Evil Corp.',
-			logo: Command,
-			plan: 'Free',
-		},
-	],
 	navMain: [
 		{
 			title: 'Home',
 			url: '/dashboard',
 			icon: LayoutDashboard,
+			shortcut: '⌘⇧H',
+			hotkey: 'mod+shift+h',
 		},
 		{
 			title: 'Activity',
 			url: '/dashboard/activity',
 			icon: Activity,
+			shortcut: '⌘⇧A',
+			hotkey: 'mod+shift+a',
 		},
 		{
 			title: 'Performance',
 			url: '/dashboard/performance',
 			icon: LineChart,
+			shortcut: '⌘⇧P',
+			hotkey: 'mod+shift+p',
 		},
 		{
 			title: 'Alerts',
 			url: '/dashboard/alerts',
 			icon: Bell,
+			shortcut: '⌘⇧C',
+			hotkey: 'mod+shift+c',
 		},
 		{
 			title: 'Settings',
 			url: '/dashboard/settings',
 			icon: Settings2,
+			shortcut: '⌘⇧S',
+			hotkey: 'mod+shift+s',
 		},
 	],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+	const router = useRouter();
+
+	// Create a single hotkey string with all shortcuts
+	const hotkeyString = data.navMain.map((item) => item.hotkey).join(',');
+
+	// Single hotkey handler for all navigation shortcuts
+	useHotkeys(
+		hotkeyString,
+		(e) => {
+			// Find the matching navigation item
+			const item = data.navMain.find(
+				(nav) => e.key.toLowerCase() === nav.hotkey.split('+').pop()
+			);
+			if (item) {
+				router.push(item.url);
+			}
+		},
+		{
+			preventDefault: true,
+			enableOnFormTags: true,
+		},
+		[router]
+	);
+
 	return (
 		<Sidebar
 			collapsible='icon'
 			{...props}
 		>
 			<SidebarHeader>
-				<TeamSwitcher teams={data.teams} />
+				<ContractSwitcher />
 			</SidebarHeader>
 			<SidebarContent>
 				<NavMain items={data.navMain} />

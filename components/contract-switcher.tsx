@@ -20,32 +20,41 @@ import {
 	useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import { AddContractDialog } from '@/components/add-contract-dialog';
 
 // Sample contract data - in real app, this would come from API/localStorage
 const sampleContracts = [
 	{
 		name: 'Token Contract',
-		contractId: 'GACT...X4WY',
+		contractId: 'CACT...X4WY',
 		network: 'mainnet',
 	},
 	{
 		name: 'Liquidity Pool',
-		contractId: 'GBXC...L9MN',
+		contractId: 'CBXC...L9MN',
 		network: 'mainnet',
 	},
 	{
 		name: 'NFT Marketplace',
-		contractId: 'GDEF...K3PQ',
+		contractId: 'CDEF...K3PQ',
 		network: 'testnet',
 	},
 ];
 
 export function ContractSwitcher() {
 	const { isMobile } = useSidebar();
-	const [activeContract, setActiveContract] = React.useState(() => {
+	const [activeContract, setActiveContract] = React.useState(
+		sampleContracts[0]
+	);
+	const [dropdownOpen, setDropdownOpen] = React.useState(false);
+
+	// Load stored contract on client-side only
+	React.useEffect(() => {
 		const stored = localStorage.getItem('activeContract');
-		return stored ? JSON.parse(stored) : sampleContracts[0];
-	});
+		if (stored) {
+			setActiveContract(JSON.parse(stored));
+		}
+	}, []);
 
 	// Persist selected contract to localStorage
 	React.useEffect(() => {
@@ -87,7 +96,10 @@ export function ContractSwitcher() {
 	return (
 		<SidebarMenu>
 			<SidebarMenuItem>
-				<DropdownMenu>
+				<DropdownMenu
+					open={dropdownOpen}
+					onOpenChange={setDropdownOpen}
+				>
 					<DropdownMenuTrigger asChild>
 						<SidebarMenuButton
 							size='lg'
@@ -161,14 +173,24 @@ export function ContractSwitcher() {
 							</DropdownMenuItem>
 						))}
 						<DropdownMenuSeparator />
-						<DropdownMenuItem className='gap-2 p-2'>
-							<div className='flex size-6 items-center justify-center rounded-md border bg-background'>
-								<Plus className='size-4' />
-							</div>
-							<div className='font-medium text-muted-foreground'>
-								Add Contract
-							</div>
-						</DropdownMenuItem>
+						<AddContractDialog
+							trigger={
+								<DropdownMenuItem
+									className='gap-2 p-2'
+									onSelect={(e) => e.preventDefault()}
+								>
+									<div className='flex size-6 items-center justify-center rounded-md border bg-background'>
+										<Plus className='size-4' />
+									</div>
+									<div className='font-medium text-muted-foreground'>
+										Add Contract
+									</div>
+								</DropdownMenuItem>
+							}
+							onOpenChange={(open) => {
+								if (!open) setDropdownOpen(false);
+							}}
+						/>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</SidebarMenuItem>

@@ -28,6 +28,9 @@ const breadcrumbTitles: { [key: string]: string } = {
 	metrics: 'Metrics',
 	alerts: 'Alerts',
 	settings: 'Settings',
+	contracts: 'Contracts',
+	account: 'Account',
+	general: 'General',
 };
 
 export default function DashboardLayout({

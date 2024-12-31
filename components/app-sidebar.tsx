@@ -64,6 +64,20 @@ const data = {
 			icon: Settings2,
 			shortcut: '⌘⇧S',
 			hotkey: 'mod+shift+s',
+			items: [
+				{
+					title: 'General',
+					url: '/dashboard/settings/general',
+				},
+				{
+					title: 'Contracts',
+					url: '/dashboard/settings/contracts',
+				},
+				{
+					title: 'Account',
+					url: '/dashboard/settings/account',
+				},
+			],
 		},
 	],
 };

@@ -5,14 +5,6 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card';
-import {
 	ChartConfig,
 	ChartContainer,
 	ChartLegend,
@@ -21,12 +13,13 @@ import {
 	ChartTooltipContent,
 } from '@/components/ui/chart';
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select';
+	chartContainerClass,
+	commonAxisConfig,
+	commonGridConfig,
+	formatDate,
+	useTimeRange,
+	ChartCard,
+} from './chart-utils';
 
 // Sample data - we'll replace this with real resource usage data later
 const chartData = [
@@ -57,21 +50,8 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function ResourceUsageChart() {
-	const [timeRange, setTimeRange] = React.useState('90d');
-
-	const filteredData = chartData.filter((item) => {
-		const date = new Date(item.date);
-		const referenceDate = new Date();
-		let daysToSubtract = 90;
-		if (timeRange === '30d') {
-			daysToSubtract = 30;
-		} else if (timeRange === '7d') {
-			daysToSubtract = 7;
-		}
-		const startDate = new Date(referenceDate);
-		startDate.setDate(startDate.getDate() - daysToSubtract);
-		return date >= startDate;
-	});
+	const { timeRange, setTimeRange, filterDataByTimeRange } = useTimeRange();
+	const filteredData = filterDataByTimeRange(chartData);
 
 	const getAverageUsage = (metric: 'cpu' | 'memory' | 'network') =>
 		Math.round(
@@ -80,121 +60,12 @@ export function ResourceUsageChart() {
 		);
 
 	return (
-		<Card>
-			<CardHeader className='flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row'>
-				<div className='grid flex-1 gap-1 text-center sm:text-left'>
-					<CardTitle>Resource Usage</CardTitle>
-					<CardDescription>
-						CPU, Memory, and Network utilization
-					</CardDescription>
-				</div>
-				<Select
-					value={timeRange}
-					onValueChange={setTimeRange}
-				>
-					<SelectTrigger
-						className='w-[160px] rounded-lg sm:ml-auto'
-						aria-label='Select time range'
-					>
-						<SelectValue placeholder='Last 3 months' />
-					</SelectTrigger>
-					<SelectContent className='rounded-xl'>
-						<SelectItem
-							value='90d'
-							className='rounded-lg'
-						>
-							Last 3 months
-						</SelectItem>
-						<SelectItem
-							value='30d'
-							className='rounded-lg'
-						>
-							Last 30 days
-						</SelectItem>
-						<SelectItem
-							value='7d'
-							className='rounded-lg'
-						>
-							Last 7 days
-						</SelectItem>
-					</SelectContent>
-				</Select>
-			</CardHeader>
-			<CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
-				<ChartContainer
-					config={chartConfig}
-					className='aspect-auto h-[250px] w-full'
-				>
-					<LineChart
-						data={filteredData}
-						margin={{
-							left: 12,
-							right: 12,
-						}}
-						accessibilityLayer
-					>
-						<CartesianGrid vertical={false} />
-						<XAxis
-							dataKey='date'
-							tickLine={false}
-							axisLine={false}
-							tickMargin={8}
-							minTickGap={32}
-							tickFormatter={(value) => {
-								const date = new Date(value);
-								return date.toLocaleDateString('en-US', {
-									month: 'short',
-									day: 'numeric',
-								});
-							}}
-						/>
-						<YAxis
-							tickLine={false}
-							axisLine={false}
-							tickMargin={8}
-							tickFormatter={(value) => `${value}%`}
-						/>
-						<ChartTooltip
-							cursor={false}
-							content={
-								<ChartTooltipContent
-									labelFormatter={(value) => {
-										return new Date(
-											value
-										).toLocaleDateString('en-US', {
-											month: 'short',
-											day: 'numeric',
-										});
-									}}
-								/>
-							}
-						/>
-						<Line
-							type='natural'
-							dataKey='cpu'
-							stroke='var(--color-cpu)'
-							strokeWidth={2}
-							dot={false}
-						/>
-						<Line
-							type='natural'
-							dataKey='memory'
-							stroke='var(--color-memory)'
-							strokeWidth={2}
-							dot={false}
-						/>
-						<Line
-							type='natural'
-							dataKey='network'
-							stroke='var(--color-network)'
-							strokeWidth={2}
-							dot={false}
-						/>
-						<ChartLegend content={<ChartLegendContent />} />
-					</LineChart>
-				</ChartContainer>
-			</CardContent>
-			<CardFooter>
+		<ChartCard
+			title='Resource Usage'
+			description='CPU, Memory, and Network utilization'
+			timeRange={timeRange}
+			onTimeRangeChange={setTimeRange}
+			footer={
 				<div className='flex w-full flex-col items-start gap-2 text-sm'>
 					<div className='flex items-center gap-2 font-medium leading-none'>
 						Resource usage trending up{' '}
@@ -208,7 +79,61 @@ export function ResourceUsageChart() {
 						</div>
 					</div>
 				</div>
-			</CardFooter>
-		</Card>
+			}
+		>
+			<ChartContainer
+				config={chartConfig}
+				className={chartContainerClass}
+			>
+				<LineChart
+					data={filteredData}
+					margin={{
+						left: 12,
+						right: 12,
+					}}
+					accessibilityLayer
+				>
+					<CartesianGrid {...commonGridConfig} />
+					<XAxis
+						{...commonAxisConfig}
+						dataKey='date'
+						minTickGap={32}
+						tickFormatter={formatDate}
+					/>
+					<YAxis
+						{...commonAxisConfig}
+						tickFormatter={(value) => `${value}%`}
+					/>
+					<ChartTooltip
+						cursor={false}
+						content={
+							<ChartTooltipContent labelFormatter={formatDate} />
+						}
+					/>
+					<Line
+						type='natural'
+						dataKey='cpu'
+						stroke='var(--color-cpu)'
+						strokeWidth={2}
+						dot={false}
+					/>
+					<Line
+						type='natural'
+						dataKey='memory'
+						stroke='var(--color-memory)'
+						strokeWidth={2}
+						dot={false}
+					/>
+					<Line
+						type='natural'
+						dataKey='network'
+						stroke='var(--color-network)'
+						strokeWidth={2}
+						dot={false}
+					/>
+					<ChartLegend content={<ChartLegendContent />} />
+				</LineChart>
+			</ChartContainer>
+		</ChartCard>
 	);
 }

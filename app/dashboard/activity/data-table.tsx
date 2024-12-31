@@ -21,7 +21,9 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useState } from 'react';
+import { Search } from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -52,7 +54,27 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div>
-			<div className='rounded-md border'>
+			<div className='flex items-center pb-4'>
+				<div className='relative max-w-sm'>
+					<Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
+					<Input
+						placeholder='Filter functions...'
+						value={
+							(table
+								.getColumn('function')
+								?.getFilterValue() as string) ?? ''
+						}
+						onChange={(event) =>
+							table
+								.getColumn('function')
+								?.setFilterValue(event.target.value)
+						}
+						className='pl-8'
+					/>
+				</div>
+			</div>
+
+			<div className='border rounded-md'>
 				<Table>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
@@ -96,9 +118,10 @@ export function DataTable<TData, TValue>({
 							<TableRow>
 								<TableCell
 									colSpan={columns.length}
-									className='h-24 text-center'
+									className='h-20 text-center'
 								>
-									No results.
+									No matching events found. Try adjusting your
+									filters.
 								</TableCell>
 							</TableRow>
 						)}

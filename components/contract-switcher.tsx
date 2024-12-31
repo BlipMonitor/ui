@@ -42,10 +42,17 @@ const sampleContracts = [
 
 export function ContractSwitcher() {
 	const { isMobile } = useSidebar();
-	const [activeContract, setActiveContract] = React.useState(() => {
+	const [activeContract, setActiveContract] = React.useState(
+		sampleContracts[0]
+	);
+
+	// Load stored contract on client-side only
+	React.useEffect(() => {
 		const stored = localStorage.getItem('activeContract');
-		return stored ? JSON.parse(stored) : sampleContracts[0];
-	});
+		if (stored) {
+			setActiveContract(JSON.parse(stored));
+		}
+	}, []);
 
 	// Persist selected contract to localStorage
 	React.useEffect(() => {

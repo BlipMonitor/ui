@@ -17,11 +17,13 @@ import {
 	PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Filter } from 'lucide-react';
+import { AlertCircle, CalendarIcon, Filter, RefreshCcw } from 'lucide-react';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { columns } from './columns';
 import { DataTable } from './data-table';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Sample data - replace with real data later
 const sampleEvents = [
@@ -56,11 +58,53 @@ export default function ActivityPage() {
 	const [outcome, setOutcome] = useState<'all' | 'success' | 'failure'>(
 		'all'
 	);
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+
+	// Simulate loading and potential error for demo
+	setTimeout(() => {
+		setIsLoading(false);
+	}, 1000);
 
 	const filteredEvents = sampleEvents.filter((event) => {
-		if (outcome === 'all') return true;
-		return event.outcome === outcome;
+		// First filter by outcome
+		if (outcome !== 'all' && event.outcome !== outcome) {
+			return false;
+		}
+
+		// Then filter by date if selected
+		if (date) {
+			const eventDate = new Date(event.timestamp);
+			return (
+				eventDate.getFullYear() === date.getFullYear() &&
+				eventDate.getMonth() === date.getMonth() &&
+				eventDate.getDate() === date.getDate()
+			);
+		}
+
+		return true;
 	});
+
+	if (isLoading) {
+		return (
+			<div className='flex flex-1 flex-col gap-4 p-4'>
+				<div className='flex items-center justify-between'>
+					<Skeleton className='h-6 w-32' />
+					<div className='flex items-center gap-2'>
+						<Skeleton className='h-9 w-[240px]' />
+						<Skeleton className='h-9 w-24' />
+					</div>
+				</div>
+
+				<div className='space-y-2'>
+					<Skeleton className='h-9 w-full' />
+					<Skeleton className='h-12 w-full' />
+					<Skeleton className='h-12 w-full' />
+					<Skeleton className='h-12 w-full' />
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className='flex flex-1 flex-col gap-4 p-4'>
@@ -130,10 +174,33 @@ export default function ActivityPage() {
 				</div>
 			</div>
 
-			<DataTable
-				columns={columns}
-				data={filteredEvents}
-			/>
+			{error ? (
+				<Alert variant='destructive'>
+					<AlertCircle className='h-4 w-4' />
+					<AlertTitle>Error</AlertTitle>
+					<AlertDescription className='flex items-center justify-between'>
+						<span>{error}</span>
+						<Button
+							variant='outline'
+							size='sm'
+							onClick={() => {
+								setIsLoading(true);
+								setError(null);
+								// Simulate retry
+								setTimeout(() => setIsLoading(false), 1000);
+							}}
+						>
+							<RefreshCcw className='mr-2 h-4 w-4' />
+							Retry
+						</Button>
+					</AlertDescription>
+				</Alert>
+			) : (
+				<DataTable
+					columns={columns}
+					data={filteredEvents}
+				/>
+			)}
 		</div>
 	);
 }

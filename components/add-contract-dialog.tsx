@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const formSchema = z.object({
 	contractId: z
@@ -35,6 +36,9 @@ const formSchema = z.object({
 		.string()
 		.min(1, 'Name is required')
 		.max(50, 'Name must be less than 50 characters'),
+	network: z.enum(['mainnet', 'testnet'], {
+		required_error: 'Please select a network',
+	}),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -54,6 +58,7 @@ export function AddContractDialog({
 		defaultValues: {
 			contractId: '',
 			friendlyName: '',
+			network: 'mainnet',
 		},
 	});
 
@@ -145,6 +150,44 @@ export function AddContractDialog({
 									</FormControl>
 									<FormDescription>
 										A memorable name for this contract
+									</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name='network'
+							render={({ field }) => (
+								<FormItem className='space-y-3'>
+									<FormLabel>Network</FormLabel>
+									<FormControl>
+										<RadioGroup
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+											className='flex space-x-4'
+										>
+											<FormItem className='flex items-center space-x-2 space-y-0'>
+												<FormControl>
+													<RadioGroupItem value='mainnet' />
+												</FormControl>
+												<FormLabel className='font-normal'>
+													Mainnet
+												</FormLabel>
+											</FormItem>
+											<FormItem className='flex items-center space-x-2 space-y-0'>
+												<FormControl>
+													<RadioGroupItem value='testnet' />
+												</FormControl>
+												<FormLabel className='font-normal'>
+													Testnet
+												</FormLabel>
+											</FormItem>
+										</RadioGroup>
+									</FormControl>
+									<FormDescription>
+										Select the network this contract is
+										deployed on
 									</FormDescription>
 									<FormMessage />
 								</FormItem>

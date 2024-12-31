@@ -22,8 +22,9 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -36,6 +37,7 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+	const [isFiltering, setIsFiltering] = useState(false);
 
 	const table = useReactTable({
 		data,
@@ -51,6 +53,13 @@ export function DataTable<TData, TValue>({
 			columnFilters,
 		},
 	});
+
+	// Simulate loading state when filters change
+	useEffect(() => {
+		setIsFiltering(true);
+		const timer = setTimeout(() => setIsFiltering(false), 500);
+		return () => clearTimeout(timer);
+	}, [columnFilters, sorting]);
 
 	return (
 		<div>
@@ -96,7 +105,17 @@ export function DataTable<TData, TValue>({
 						))}
 					</TableHeader>
 					<TableBody>
-						{table.getRowModel().rows?.length ? (
+						{isFiltering ? (
+							Array.from({ length: 5 }).map((_, index) => (
+								<TableRow key={index}>
+									{columns.map((_, cellIndex) => (
+										<TableCell key={cellIndex}>
+											<Skeleton className='h-6 w-[100px]' />
+										</TableCell>
+									))}
+								</TableRow>
+							))
+						) : table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (
 								<TableRow
 									key={row.id}

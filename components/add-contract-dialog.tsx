@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 import {
 	Dialog,
@@ -61,6 +62,20 @@ export function AddContractDialog({
 		onOpenChange?.(newOpen);
 	};
 
+	// Add hotkey to open dialog
+	useHotkeys(
+		'mod+k',
+		(e) => {
+			e.preventDefault();
+			handleOpenChange(true);
+		},
+		{
+			enableOnFormTags: true,
+			preventDefault: true,
+		},
+		[handleOpenChange]
+	);
+
 	function onSubmit(data: FormValues) {
 		// For MVP, just log the data
 		console.log('Contract Data:', data);
@@ -74,7 +89,14 @@ export function AddContractDialog({
 			onOpenChange={handleOpenChange}
 		>
 			<DialogTrigger asChild>
-				{trigger || <Button>Add Contract</Button>}
+				{trigger || (
+					<Button>
+						Add Contract
+						<kbd className='pointer-events-none ml-2 hidden select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:inline-flex'>
+							<span className='text-xs'>⌘</span>K
+						</kbd>
+					</Button>
+				)}
 			</DialogTrigger>
 			<DialogContent className='sm:max-w-[425px]'>
 				<DialogHeader>

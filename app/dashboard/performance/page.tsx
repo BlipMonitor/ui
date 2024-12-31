@@ -1,6 +1,7 @@
 'use client';
 
 import { ContractCallsChart } from '@/components/charts/contract-calls-chart';
+import { ResourceUsageChart } from '@/components/charts/resource-usage-chart';
 import { ResponseTimeChart } from '@/components/charts/response-time-chart';
 import { SuccessRateChart } from '@/components/charts/success-rate-chart';
 
@@ -10,6 +11,7 @@ export default function PerformancePage() {
 			<ContractCallsChart />
 			<SuccessRateChart />
 			<ResponseTimeChart />
+			<ResourceUsageChart />
 		</div>
 	);
 }

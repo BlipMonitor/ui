@@ -1,17 +1,17 @@
-import { Metadata } from 'next';
+'use client';
 
-export const metadata: Metadata = {
-	title: 'Performance | Soroban Monitor',
-	description:
-		'Performance metrics and analytics for Soroban smart contracts',
-};
+import { ContractCallsChart } from '@/components/charts/contract-calls-chart';
+import { ResourceUsageChart } from '@/components/charts/resource-usage-chart';
+import { ResponseTimeChart } from '@/components/charts/response-time-chart';
+import { SuccessRateChart } from '@/components/charts/success-rate-chart';
 
 export default function PerformancePage() {
 	return (
-		<div className='flex flex-1 flex-col gap-4 p-4'>
-			<div className='rounded-xl bg-muted/50 p-4'>
-				Performance Metrics Coming Soon
-			</div>
+		<div className='grid gap-6 p-6 md:grid-cols-2'>
+			<ContractCallsChart />
+			<SuccessRateChart />
+			<ResponseTimeChart />
+			<ResourceUsageChart />
 		</div>
 	);
 }

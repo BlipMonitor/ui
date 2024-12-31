@@ -3,6 +3,8 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // This type is used to define the shape of our data.
 export type ActivityEvent = {
@@ -17,18 +19,75 @@ export type ActivityEvent = {
 export const columns: ColumnDef<ActivityEvent>[] = [
 	{
 		accessorKey: 'timestamp',
-		header: 'Timestamp',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant='ghost'
+					onClick={() =>
+						column.toggleSorting(column.getIsSorted() === 'asc')
+					}
+					className='px-0 hover:bg-transparent'
+				>
+					Timestamp
+					{column.getIsSorted() === 'asc' ? (
+						<ArrowUp className='ml-2 h-4 w-4' />
+					) : column.getIsSorted() === 'desc' ? (
+						<ArrowDown className='ml-2 h-4 w-4' />
+					) : (
+						<ArrowUpDown className='ml-2 h-4 w-4' />
+					)}
+				</Button>
+			);
+		},
 		cell: ({ row }) => {
 			return format(row.getValue('timestamp'), 'MMM d, yyyy HH:mm:ss');
 		},
 	},
 	{
 		accessorKey: 'function',
-		header: 'Function',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant='ghost'
+					onClick={() =>
+						column.toggleSorting(column.getIsSorted() === 'asc')
+					}
+					className='px-0 hover:bg-transparent'
+				>
+					Function
+					{column.getIsSorted() === 'asc' ? (
+						<ArrowUp className='ml-2 h-4 w-4' />
+					) : column.getIsSorted() === 'desc' ? (
+						<ArrowDown className='ml-2 h-4 w-4' />
+					) : (
+						<ArrowUpDown className='ml-2 h-4 w-4' />
+					)}
+				</Button>
+			);
+		},
 	},
 	{
 		accessorKey: 'outcome',
-		header: 'Outcome',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant='ghost'
+					onClick={() =>
+						column.toggleSorting(column.getIsSorted() === 'asc')
+					}
+					className='px-0 hover:bg-transparent'
+				>
+					Outcome
+					{column.getIsSorted() === 'asc' ? (
+						<ArrowUp className='ml-2 h-4 w-4' />
+					) : column.getIsSorted() === 'desc' ? (
+						<ArrowDown className='ml-2 h-4 w-4' />
+					) : (
+						<ArrowUpDown className='ml-2 h-4 w-4' />
+					)}
+				</Button>
+			);
+		},
 		cell: ({ row }) => {
 			const outcome = row.getValue('outcome') as string;
 			return (
@@ -47,10 +106,48 @@ export const columns: ColumnDef<ActivityEvent>[] = [
 	},
 	{
 		accessorKey: 'gasUsed',
-		header: 'Gas Used',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant='ghost'
+					onClick={() =>
+						column.toggleSorting(column.getIsSorted() === 'asc')
+					}
+					className='px-0 hover:bg-transparent'
+				>
+					Gas Used
+					{column.getIsSorted() === 'asc' ? (
+						<ArrowUp className='ml-2 h-4 w-4' />
+					) : column.getIsSorted() === 'desc' ? (
+						<ArrowDown className='ml-2 h-4 w-4' />
+					) : (
+						<ArrowUpDown className='ml-2 h-4 w-4' />
+					)}
+				</Button>
+			);
+		},
 	},
 	{
 		accessorKey: 'executionTime',
-		header: 'Execution Time',
+		header: ({ column }) => {
+			return (
+				<Button
+					variant='ghost'
+					onClick={() =>
+						column.toggleSorting(column.getIsSorted() === 'asc')
+					}
+					className='px-0 hover:bg-transparent'
+				>
+					Execution Time
+					{column.getIsSorted() === 'asc' ? (
+						<ArrowUp className='ml-2 h-4 w-4' />
+					) : column.getIsSorted() === 'desc' ? (
+						<ArrowDown className='ml-2 h-4 w-4' />
+					) : (
+						<ArrowUpDown className='ml-2 h-4 w-4' />
+					)}
+				</Button>
+			);
+		},
 	},
 ];

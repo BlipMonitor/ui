@@ -24,6 +24,7 @@ import { columns } from './columns';
 import { DataTable } from './data-table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { EventDetailsDrawer } from '@/components/events/event-details-drawer';
 
 // Sample data - replace with real data later
 const sampleEvents = [
@@ -34,6 +35,8 @@ const sampleEvents = [
 		outcome: 'success' as const,
 		gasUsed: '21,000',
 		executionTime: '2.3s',
+		transactionId: 'tx_0x1234567890abcdef',
+		blockNumber: '12345678',
 	},
 	{
 		id: '2',
@@ -42,6 +45,9 @@ const sampleEvents = [
 		outcome: 'failure' as const,
 		gasUsed: '45,000',
 		executionTime: '3.1s',
+		transactionId: 'tx_0xabcdef1234567890',
+		blockNumber: '12345679',
+		errorMessage: 'Insufficient liquidity for swap operation.',
 	},
 	{
 		id: '3',
@@ -50,6 +56,8 @@ const sampleEvents = [
 		outcome: 'success' as const,
 		gasUsed: '32,000',
 		executionTime: '1.8s',
+		transactionId: 'tx_0x9876543210fedcba',
+		blockNumber: '12345680',
 	},
 ];
 
@@ -60,6 +68,10 @@ export default function ActivityPage() {
 	);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [selectedEvent, setSelectedEvent] = useState<
+		(typeof sampleEvents)[0] | null
+	>(null);
+	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	// Simulate loading and potential error for demo
 	setTimeout(() => {
@@ -84,6 +96,11 @@ export default function ActivityPage() {
 
 		return true;
 	});
+
+	const handleRowClick = (event: (typeof sampleEvents)[0]) => {
+		setSelectedEvent(event);
+		setDrawerOpen(true);
+	};
 
 	if (isLoading) {
 		return (
@@ -196,10 +213,18 @@ export default function ActivityPage() {
 					</AlertDescription>
 				</Alert>
 			) : (
-				<DataTable
-					columns={columns}
-					data={filteredEvents}
-				/>
+				<>
+					<DataTable
+						columns={columns}
+						data={filteredEvents}
+						onRowClick={handleRowClick}
+					/>
+					<EventDetailsDrawer
+						event={selectedEvent}
+						open={drawerOpen}
+						onOpenChange={setDrawerOpen}
+					/>
+				</>
 			)}
 		</div>
 	);

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { format } from 'date-fns';
-import { Copy } from 'lucide-react';
+import { Copy, X } from 'lucide-react';
 
 import {
 	Sheet,
@@ -10,6 +10,7 @@ import {
 	SheetDescription,
 	SheetHeader,
 	SheetTitle,
+	SheetClose,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,35 +48,49 @@ export function EventDetailsDrawer({
 			open={open}
 			onOpenChange={onOpenChange}
 		>
-			<SheetContent className='w-full sm:max-w-xl'>
-				<SheetHeader>
-					<SheetTitle>Event Details</SheetTitle>
-					<SheetDescription>
-						Detailed information about this contract event.
-					</SheetDescription>
-				</SheetHeader>
+			<SheetContent className='w-full overflow-y-auto p-0 sm:max-w-xl'>
+				<div className='sticky top-0 z-20 border-b bg-background px-6 py-4'>
+					<SheetHeader className='gap-2'>
+						<div className='flex items-center justify-between'>
+							<SheetTitle>Event Details</SheetTitle>
+							<SheetClose className='rounded-sm bg-secondary opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none'>
+								<X className='h-4 w-4 text-secondary-foreground' />
+								<span className='sr-only'>Close</span>
+							</SheetClose>
+						</div>
+						<SheetDescription>
+							Detailed information about this contract event.
+						</SheetDescription>
+					</SheetHeader>
+				</div>
 
-				<div className='mt-6 space-y-6'>
+				<div className='space-y-6 px-6 py-4'>
 					{/* Basic Info */}
 					<div className='space-y-2'>
 						<h3 className='text-sm font-medium text-muted-foreground'>
 							Basic Information
 						</h3>
 						<div className='grid gap-4 rounded-lg border p-4'>
-							<div className='grid grid-cols-3 items-center gap-4'>
-								<span className='text-sm'>Function</span>
-								<span className='col-span-2 font-mono font-medium'>
+							<div className='grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:items-center sm:gap-4'>
+								<span className='text-sm font-medium sm:font-normal'>
+									Function
+								</span>
+								<span className='sm:col-span-2 font-mono text-sm sm:text-base break-all'>
 									{event.function}
 								</span>
 							</div>
-							<div className='grid grid-cols-3 items-center gap-4'>
-								<span className='text-sm'>Timestamp</span>
-								<span className='col-span-2 font-mono'>
+							<div className='grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:items-center sm:gap-4'>
+								<span className='text-sm font-medium sm:font-normal'>
+									Timestamp
+								</span>
+								<span className='sm:col-span-2 font-mono text-sm sm:text-base'>
 									{format(event.timestamp, 'PPpp')}
 								</span>
 							</div>
-							<div className='grid grid-cols-3 items-center gap-4'>
-								<span className='text-sm'>Status</span>
+							<div className='grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:items-center sm:gap-4'>
+								<span className='text-sm font-medium sm:font-normal'>
+									Status
+								</span>
 								<Badge
 									variant={
 										event.outcome === 'success'
@@ -83,7 +98,7 @@ export function EventDetailsDrawer({
 											: 'destructive'
 									}
 									className={cn(
-										'capitalize',
+										'capitalize w-fit',
 										event.outcome === 'success' &&
 											'bg-green-500 text-white hover:bg-green-500/80 dark:bg-green-900 dark:hover:bg-green-900/80'
 									)}
@@ -100,15 +115,19 @@ export function EventDetailsDrawer({
 							Performance Metrics
 						</h3>
 						<div className='grid gap-4 rounded-lg border p-4'>
-							<div className='grid grid-cols-3 items-center gap-4'>
-								<span className='text-sm'>Gas Used</span>
-								<span className='col-span-2 font-mono'>
+							<div className='grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:items-center sm:gap-4'>
+								<span className='text-sm font-medium sm:font-normal'>
+									Gas Used
+								</span>
+								<span className='sm:col-span-2 font-mono text-sm sm:text-base'>
 									{event.gasUsed}
 								</span>
 							</div>
-							<div className='grid grid-cols-3 items-center gap-4'>
-								<span className='text-sm'>Execution Time</span>
-								<span className='col-span-2 font-mono'>
+							<div className='grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:items-center sm:gap-4'>
+								<span className='text-sm font-medium sm:font-normal'>
+									Execution Time
+								</span>
+								<span className='sm:col-span-2 font-mono text-sm sm:text-base'>
 									{event.executionTime}
 								</span>
 							</div>
@@ -122,18 +141,18 @@ export function EventDetailsDrawer({
 						</h3>
 						<div className='grid gap-4 rounded-lg border p-4'>
 							{event.transactionId && (
-								<div className='grid grid-cols-3 items-center gap-4'>
-									<span className='text-sm'>
+								<div className='grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:items-center sm:gap-4'>
+									<span className='text-sm font-medium sm:font-normal'>
 										Transaction ID
 									</span>
-									<div className='col-span-2 flex items-center gap-2'>
-										<span className='font-mono text-sm'>
+									<div className='sm:col-span-2 flex items-center gap-2'>
+										<span className='font-mono text-sm sm:text-base break-all'>
 											{event.transactionId}
 										</span>
 										<Button
 											variant='ghost'
 											size='icon'
-											className='h-6 w-6'
+											className='h-6 w-6 shrink-0'
 											onClick={() =>
 												copyToClipboard(
 													event.transactionId!
@@ -149,11 +168,11 @@ export function EventDetailsDrawer({
 								</div>
 							)}
 							{event.blockNumber && (
-								<div className='grid grid-cols-3 items-center gap-4'>
-									<span className='text-sm'>
+								<div className='grid grid-cols-1 sm:grid-cols-3 items-start gap-1 sm:items-center sm:gap-4'>
+									<span className='text-sm font-medium sm:font-normal'>
 										Block Number
 									</span>
-									<span className='col-span-2 font-mono'>
+									<span className='sm:col-span-2 font-mono text-sm sm:text-base'>
 										{event.blockNumber}
 									</span>
 								</div>
@@ -168,7 +187,7 @@ export function EventDetailsDrawer({
 								Error Details
 							</h3>
 							<div className='rounded-lg border border-destructive/20 bg-destructive/10 p-4'>
-								<pre className='whitespace-pre-wrap text-sm text-destructive'>
+								<pre className='whitespace-pre-wrap text-sm text-destructive break-all'>
 									{event.errorMessage}
 								</pre>
 							</div>

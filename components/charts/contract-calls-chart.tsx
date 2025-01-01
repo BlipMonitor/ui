@@ -16,7 +16,6 @@ import {
 	commonAxisConfig,
 	commonGridConfig,
 	formatDate,
-	useTimeRange,
 	ChartCard,
 	groupDataByDate,
 	filterDataByTimeRange,

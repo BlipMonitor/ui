@@ -15,7 +15,6 @@ import {
 	ChartConfig,
 	ChartContainer,
 	ChartTooltip,
-	ChartTooltipContent,
 } from '@/components/ui/chart';
 import {
 	chartContainerClass,
@@ -23,6 +22,8 @@ import {
 	commonGridConfig,
 	formatDate,
 	ChartCard,
+	useTimeRange,
+	TimeRange,
 } from './chart-utils';
 
 interface GasData {
@@ -32,13 +33,13 @@ interface GasData {
 
 // Sample data - we'll replace this with real gas usage data later
 const chartData: GasData[] = [
-	{ date: '2024-02-20', gasUsage: 1200000 },
-	{ date: '2024-02-21', gasUsage: 1150000 },
-	{ date: '2024-02-22', gasUsage: 1300000 },
-	{ date: '2024-02-23', gasUsage: 1250000 },
-	{ date: '2024-02-24', gasUsage: 1180000 },
-	{ date: '2024-02-25', gasUsage: 1220000 },
-	{ date: '2024-02-26', gasUsage: 1190000 },
+	{ date: '2024-12-20', gasUsage: 1200000 },
+	{ date: '2024-12-21', gasUsage: 1150000 },
+	{ date: '2024-12-22', gasUsage: 1300000 },
+	{ date: '2024-12-23', gasUsage: 1250000 },
+	{ date: '2024-12-24', gasUsage: 1180000 },
+	{ date: '2024-12-25', gasUsage: 1220000 },
+	{ date: '2024-12-26', gasUsage: 1190000 },
 ];
 
 const chartConfig = {
@@ -56,11 +57,13 @@ const calculateThreshold = (data: GasData[]) => {
 };
 
 export function MiniGasChart() {
-	const data = chartData.slice(-24); // Only show last 24 hours
+	const { timeRange, setTimeRange, filterDataByTimeRange } = useTimeRange();
+	const filteredData = filterDataByTimeRange(chartData);
 	const averageGasUsage = Math.round(
-		data.reduce((acc, curr) => acc + curr.gasUsage, 0) / data.length
+		filteredData.reduce((acc, curr) => acc + curr.gasUsage, 0) /
+			filteredData.length
 	);
-	const threshold = calculateThreshold(data);
+	const threshold = calculateThreshold(filteredData);
 
 	return (
 		<Link
@@ -70,8 +73,8 @@ export function MiniGasChart() {
 			<ChartCard
 				title='Gas Usage'
 				description='Contract gas consumption over time'
-				timeRange='7d'
-				onTimeRangeChange={() => {}}
+				timeRange={timeRange}
+				onTimeRangeChange={(value: TimeRange) => setTimeRange(value)}
 				footer={
 					<div className='flex w-full flex-col items-start gap-2 text-sm'>
 						<div className='flex items-center gap-2 font-medium leading-none'>
@@ -79,9 +82,12 @@ export function MiniGasChart() {
 							gas <TrendingDown className='h-4 w-4' />
 						</div>
 						<div className='text-muted-foreground'>
-							Last 24 hours •{' '}
-							{data.filter((d) => d.gasUsage > threshold).length}{' '}
-							spikes detected
+							{
+								filteredData.filter(
+									(d) => d.gasUsage > threshold
+								).length
+							}{' '}
+							spikes detected in selected period
 						</div>
 					</div>
 				}
@@ -91,7 +97,7 @@ export function MiniGasChart() {
 					className={chartContainerClass}
 				>
 					<AreaChart
-						data={data}
+						data={filteredData}
 						margin={{
 							left: 12,
 							right: 12,

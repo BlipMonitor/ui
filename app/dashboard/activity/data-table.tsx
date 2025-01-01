@@ -8,8 +8,6 @@ import {
 	getPaginationRowModel,
 	SortingState,
 	getSortedRowModel,
-	ColumnFiltersState,
-	getFilteredRowModel,
 } from '@tanstack/react-table';
 
 import {
@@ -21,9 +19,7 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DataTableProps<TData, TValue> {
@@ -38,7 +34,6 @@ export function DataTable<TData, TValue>({
 	onRowClick,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [isFiltering, setIsFiltering] = useState(false);
 
 	const table = useReactTable({
@@ -48,11 +43,8 @@ export function DataTable<TData, TValue>({
 		getPaginationRowModel: getPaginationRowModel(),
 		onSortingChange: setSorting,
 		getSortedRowModel: getSortedRowModel(),
-		onColumnFiltersChange: setColumnFilters,
-		getFilteredRowModel: getFilteredRowModel(),
 		state: {
 			sorting,
-			columnFilters,
 		},
 	});
 
@@ -61,30 +53,10 @@ export function DataTable<TData, TValue>({
 		setIsFiltering(true);
 		const timer = setTimeout(() => setIsFiltering(false), 500);
 		return () => clearTimeout(timer);
-	}, [columnFilters, sorting]);
+	}, [sorting]);
 
 	return (
 		<div>
-			<div className='flex items-center pb-4'>
-				<div className='relative max-w-sm'>
-					<Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
-					<Input
-						placeholder='Filter functions...'
-						value={
-							(table
-								.getColumn('function')
-								?.getFilterValue() as string) ?? ''
-						}
-						onChange={(event) =>
-							table
-								.getColumn('function')
-								?.setFilterValue(event.target.value)
-						}
-						className='pl-8'
-					/>
-				</div>
-			</div>
-
 			<div className='border rounded-md'>
 				<Table>
 					<TableHeader>

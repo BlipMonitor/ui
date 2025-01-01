@@ -17,6 +17,7 @@ import { DataTable } from './data-table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { EventDetailsDrawer } from '@/components/events/event-details-drawer';
+import { FunctionFilter } from '@/components/events/function-filter';
 
 // Sample data - replace with real data later
 const sampleEvents: ActivityEvent[] = [
@@ -53,11 +54,17 @@ const sampleEvents: ActivityEvent[] = [
 	},
 ];
 
+// Extract unique function names
+const uniqueFunctions = Array.from(
+	new Set(sampleEvents.map((event) => event.function))
+).sort();
+
 export default function ActivityPage() {
 	const [date, setDate] = useState<Date>();
 	const [outcome, setOutcome] = useState<'all' | 'success' | 'failure'>(
 		'all'
 	);
+	const [selectedFunctions, setSelectedFunctions] = useState<string[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [selectedEvent, setSelectedEvent] = useState<
@@ -73,6 +80,14 @@ export default function ActivityPage() {
 	const filteredEvents = sampleEvents.filter((event) => {
 		// First filter by outcome
 		if (outcome !== 'all' && event.outcome !== outcome) {
+			return false;
+		}
+
+		// Then filter by selected functions
+		if (
+			selectedFunctions.length > 0 &&
+			!selectedFunctions.includes(event.function)
+		) {
 			return false;
 		}
 
@@ -102,6 +117,7 @@ export default function ActivityPage() {
 					<div className='flex items-center gap-2'>
 						<Skeleton className='h-9 w-[240px]' />
 						<Skeleton className='h-9 w-[300px]' />
+						<Skeleton className='h-9 w-[240px]' />
 					</div>
 				</div>
 
@@ -176,6 +192,11 @@ export default function ActivityPage() {
 							Failures
 						</ToggleGroupItem>
 					</ToggleGroup>
+					<FunctionFilter
+						functions={uniqueFunctions}
+						selectedFunctions={selectedFunctions}
+						onSelectionChange={setSelectedFunctions}
+					/>
 				</div>
 			</div>
 

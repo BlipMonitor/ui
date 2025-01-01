@@ -30,7 +30,7 @@ export default function DashboardPage() {
 					title='Average Gas Usage'
 					value='1.2M'
 					icon={BarChart3}
-					trend={{ value: -1.8, isPositive: false }}
+					trend={{ value: -1.8, isPositive: true }}
 					description='Last 24 hours'
 					href='/dashboard/performance'
 				/>

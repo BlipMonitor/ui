@@ -1,7 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import {
+	Area,
+	AreaChart,
+	CartesianGrid,
+	XAxis,
+	YAxis,
+	ResponsiveContainer,
+} from 'recharts';
 import { format, subDays } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { TopCallsDialog } from '@/components/performance/top-calls-dialog';
@@ -93,68 +100,71 @@ export function ResponseTimeChart() {
 			}
 		>
 			<div className='h-[350px] w-full'>
-				<AreaChart
-					data={chartData}
-					margin={{
-						left: 12,
-						right: 12,
-						top: 12,
-						bottom: 12,
-					}}
-					width={800}
-					height={350}
+				<ResponsiveContainer
+					width='100%'
+					height='100%'
 				>
-					<defs>
-						<linearGradient
-							id='responseTimeGradient'
-							x1='0'
-							y1='0'
-							x2='0'
-							y2='1'
-						>
-							<stop
-								offset='5%'
-								stopColor='hsl(var(--primary))'
-								stopOpacity={0.2}
-							/>
-							<stop
-								offset='95%'
-								stopColor='hsl(var(--primary))'
-								stopOpacity={0}
-							/>
-						</linearGradient>
-					</defs>
-					<CartesianGrid
-						strokeDasharray='3 3'
-						className='stroke-muted'
-					/>
-					<XAxis
-						dataKey='date'
-						tickFormatter={(date) =>
-							format(new Date(date), 'MMM d')
-						}
-						className='text-xs'
-					/>
-					<YAxis
-						tickFormatter={(value) => `${value.toFixed(2)}s`}
-						className='text-xs'
-					/>
-					<Area
-						type='monotone'
-						dataKey='average'
-						stroke='hsl(var(--primary))'
-						fill='url(#responseTimeGradient)'
-						strokeWidth={2}
-					/>
-					<Area
-						type='monotone'
-						dataKey='p95'
-						stroke='hsl(var(--destructive))'
-						fill='none'
-						strokeWidth={2}
-						strokeDasharray='3 3'
-					/>
-				</AreaChart>
+					<AreaChart
+						data={chartData}
+						margin={{
+							left: 12,
+							right: 12,
+							top: 12,
+							bottom: 12,
+						}}
+					>
+						<defs>
+							<linearGradient
+								id='responseTimeGradient'
+								x1='0'
+								y1='0'
+								x2='0'
+								y2='1'
+							>
+								<stop
+									offset='5%'
+									stopColor='hsl(var(--primary))'
+									stopOpacity={0.2}
+								/>
+								<stop
+									offset='95%'
+									stopColor='hsl(var(--primary))'
+									stopOpacity={0}
+								/>
+							</linearGradient>
+						</defs>
+						<CartesianGrid
+							strokeDasharray='3 3'
+							className='stroke-muted'
+						/>
+						<XAxis
+							dataKey='date'
+							tickFormatter={(date) =>
+								format(new Date(date), 'MMM d')
+							}
+							className='text-xs'
+						/>
+						<YAxis
+							tickFormatter={(value) => `${value.toFixed(2)}s`}
+							className='text-xs'
+						/>
+						<Area
+							type='monotone'
+							dataKey='average'
+							stroke='hsl(var(--primary))'
+							fill='url(#responseTimeGradient)'
+							strokeWidth={2}
+						/>
+						<Area
+							type='monotone'
+							dataKey='p95'
+							stroke='hsl(var(--destructive))'
+							fill='none'
+							strokeWidth={2}
+							strokeDasharray='3 3'
+						/>
+					</AreaChart>
+				</ResponsiveContainer>
 			</div>
 			<TopCallsDialog
 				open={showTopCalls}

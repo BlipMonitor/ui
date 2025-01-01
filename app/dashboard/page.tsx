@@ -3,6 +3,8 @@ import { MetricGrid } from '@/components/metrics/metric-grid';
 import { MetricCardSkeleton } from '@/components/metrics/metric-card-skeleton';
 import { Suspense } from 'react';
 import { Metrics } from './metrics';
+import { RecentEvents } from '@/components/recent-events/recent-events';
+import { RecentEventsSkeleton } from '@/components/recent-events/recent-events-skeleton';
 
 export const metadata: Metadata = {
 	title: 'Overview | Soroban Monitor',
@@ -31,6 +33,10 @@ export default function DashboardPage() {
 					<Metrics />
 				</Suspense>
 			</MetricGrid>
+
+			<Suspense fallback={<RecentEventsSkeleton />}>
+				<RecentEvents />
+			</Suspense>
 		</div>
 	);
 }

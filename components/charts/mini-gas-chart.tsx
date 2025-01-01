@@ -251,7 +251,7 @@ export function MiniGasChart() {
 							}}
 							dot={({ cx, cy, payload }) => {
 								if (!payload || payload.gasUsage <= threshold)
-									return null;
+									return <g />;
 								return (
 									<circle
 										cx={cx}

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { TrendingUp } from 'lucide-react';
+import { subDays } from 'date-fns';
 
 import {
 	ChartConfig,
@@ -15,19 +16,32 @@ import {
 	commonAxisConfig,
 	commonGridConfig,
 	formatDate,
-	useTimeRange,
 	ChartCard,
+	groupDataByDate,
+	filterDataByTimeRange,
+	TimeRange,
 } from './chart-utils';
+import { Button } from '@/components/ui/button';
+import { TopCallsDialog } from '@/components/performance/top-calls-dialog';
+
+interface ContractCall {
+	id: string;
+	timestamp: string;
+	functionName: string;
+	gasUsed: number;
+	transactionId: string;
+	success: boolean;
+}
 
 // Sample data - we'll replace this with real contract calls data later
-const chartData = [
-	{ date: '2024-12-01', total: 234, success: 200, failed: 34 },
-	{ date: '2024-12-02', total: 278, success: 240, failed: 38 },
-	{ date: '2024-12-03', total: 189, success: 170, failed: 19 },
-	{ date: '2024-12-04', total: 289, success: 250, failed: 39 },
-	{ date: '2024-12-05', total: 349, success: 300, failed: 49 },
-	{ date: '2024-12-06', total: 289, success: 250, failed: 39 },
-];
+const sampleData: ContractCall[] = Array.from({ length: 30 }, (_, i) => ({
+	id: `call-${i}`,
+	timestamp: subDays(new Date(), i).toISOString(),
+	functionName: `transfer${i % 2 === 0 ? 'From' : 'To'}`,
+	gasUsed: Math.floor(Math.random() * 5000000) + 1000000,
+	transactionId: `0x${Math.random().toString(16).slice(2)}`,
+	success: Math.random() > 0.1,
+}));
 
 const chartConfig = {
 	total: {
@@ -45,11 +59,35 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function ContractCallsChart() {
-	const { timeRange, setTimeRange, filterDataByTimeRange } = useTimeRange();
-	const filteredData = filterDataByTimeRange(chartData);
+	const [timeRange, setTimeRange] = React.useState<TimeRange>('7d');
+	const [showTopCalls, setShowTopCalls] = React.useState(false);
 
-	const totalCalls = filteredData.reduce((acc, curr) => acc + curr.total, 0);
-	const averageCalls = Math.round(totalCalls / filteredData.length);
+	// Group data by date and calculate totals
+	const chartData = React.useMemo(() => {
+		const filtered = filterDataByTimeRange(sampleData, timeRange);
+		return groupDataByDate(filtered, (calls) => ({
+			total: calls.length,
+			success: calls.filter((call) => call.success).length,
+			failed: calls.filter((call) => !call.success).length,
+		}));
+	}, [timeRange]);
+
+	// Get top calls by gas usage
+	const topCalls = React.useMemo(() => {
+		return sampleData
+			.sort((a, b) => b.gasUsed - a.gasUsed)
+			.slice(0, 20)
+			.map((call) => ({
+				id: call.id,
+				timestamp: new Date(call.timestamp),
+				function: call.functionName,
+				value: call.gasUsed,
+				transactionId: call.transactionId,
+			}));
+	}, []);
+
+	const totalCalls = chartData.reduce((acc, curr) => acc + curr.total, 0);
+	const averageCalls = Math.round(totalCalls / chartData.length);
 
 	return (
 		<ChartCard
@@ -68,13 +106,22 @@ export function ContractCallsChart() {
 					</div>
 				</div>
 			}
+			action={
+				<Button
+					variant='outline'
+					size='sm'
+					onClick={() => setShowTopCalls(true)}
+				>
+					View Top Calls
+				</Button>
+			}
 		>
 			<ChartContainer
 				config={chartConfig}
 				className={chartContainerClass}
 			>
 				<AreaChart
-					data={filteredData}
+					data={chartData}
 					margin={{
 						left: 12,
 						right: 12,
@@ -127,6 +174,12 @@ export function ContractCallsChart() {
 					/>
 				</AreaChart>
 			</ChartContainer>
+			<TopCallsDialog
+				open={showTopCalls}
+				onOpenChange={setShowTopCalls}
+				type='gas'
+				data={topCalls}
+			/>
 		</ChartCard>
 	);
 }

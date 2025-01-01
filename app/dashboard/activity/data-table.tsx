@@ -29,11 +29,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
+	onRowClick?: (data: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+	onRowClick,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -122,6 +124,12 @@ export function DataTable<TData, TValue>({
 									data-state={
 										row.getIsSelected() && 'selected'
 									}
+									className={
+										onRowClick
+											? 'cursor-pointer hover:bg-muted/50'
+											: ''
+									}
+									onClick={() => onRowClick?.(row.original)}
 								>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell key={cell.id}>

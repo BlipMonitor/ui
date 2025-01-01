@@ -2,54 +2,54 @@
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuGroup,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { AlertCircle, CalendarIcon, Filter, RefreshCcw } from 'lucide-react';
+import { AlertCircle, CalendarIcon, RefreshCcw } from 'lucide-react';
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { columns } from './columns';
+import { columns, type ActivityEvent } from './columns';
 import { DataTable } from './data-table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { EventDetailsDrawer } from '@/components/events/event-details-drawer';
 
 // Sample data - replace with real data later
-const sampleEvents = [
+const sampleEvents: ActivityEvent[] = [
 	{
 		id: '1',
 		timestamp: new Date('2024-02-20T10:30:00'),
 		function: 'transfer',
-		outcome: 'success' as const,
+		outcome: 'success',
 		gasUsed: '21,000',
 		executionTime: '2.3s',
+		transactionId: 'tx_0x1234567890abcdef',
+		blockNumber: '12345678',
 	},
 	{
 		id: '2',
 		timestamp: new Date('2024-02-20T11:15:00'),
 		function: 'swap',
-		outcome: 'failure' as const,
+		outcome: 'failure',
 		gasUsed: '45,000',
 		executionTime: '3.1s',
+		transactionId: 'tx_0xabcdef1234567890',
+		blockNumber: '12345679',
+		errorMessage: 'Insufficient liquidity for swap operation.',
 	},
 	{
 		id: '3',
 		timestamp: new Date('2024-02-20T12:00:00'),
 		function: 'mint',
-		outcome: 'success' as const,
+		outcome: 'success',
 		gasUsed: '32,000',
 		executionTime: '1.8s',
+		transactionId: 'tx_0x9876543210fedcba',
+		blockNumber: '12345680',
 	},
 ];
 
@@ -60,6 +60,10 @@ export default function ActivityPage() {
 	);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [selectedEvent, setSelectedEvent] = useState<
+		(typeof sampleEvents)[0] | null
+	>(null);
+	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	// Simulate loading and potential error for demo
 	setTimeout(() => {
@@ -85,6 +89,11 @@ export default function ActivityPage() {
 		return true;
 	});
 
+	const handleRowClick = (event: (typeof sampleEvents)[0]) => {
+		setSelectedEvent(event);
+		setDrawerOpen(true);
+	};
+
 	if (isLoading) {
 		return (
 			<div className='flex flex-1 flex-col gap-4 p-4'>
@@ -92,7 +101,7 @@ export default function ActivityPage() {
 					<Skeleton className='h-6 w-32' />
 					<div className='flex items-center gap-2'>
 						<Skeleton className='h-9 w-[240px]' />
-						<Skeleton className='h-9 w-24' />
+						<Skeleton className='h-9 w-[300px]' />
 					</div>
 				</div>
 
@@ -140,37 +149,33 @@ export default function ActivityPage() {
 							/>
 						</PopoverContent>
 					</Popover>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant='outline'>
-								<Filter className='mr-2 h-4 w-4' />
-								Filter
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align='end'>
-							<DropdownMenuLabel>
-								Filter by Outcome
-							</DropdownMenuLabel>
-							<DropdownMenuSeparator />
-							<DropdownMenuGroup>
-								<DropdownMenuItem
-									onClick={() => setOutcome('all')}
-								>
-									All
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									onClick={() => setOutcome('success')}
-								>
-									Success
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									onClick={() => setOutcome('failure')}
-								>
-									Failure
-								</DropdownMenuItem>
-							</DropdownMenuGroup>
-						</DropdownMenuContent>
-					</DropdownMenu>
+					<ToggleGroup
+						type='single'
+						value={outcome}
+						onValueChange={(value) =>
+							setOutcome(value as typeof outcome)
+						}
+						className='justify-start'
+					>
+						<ToggleGroupItem
+							value='all'
+							aria-label='Show all events'
+						>
+							All Events
+						</ToggleGroupItem>
+						<ToggleGroupItem
+							value='success'
+							aria-label='Show successful events'
+						>
+							Success
+						</ToggleGroupItem>
+						<ToggleGroupItem
+							value='failure'
+							aria-label='Show failed events'
+						>
+							Failures
+						</ToggleGroupItem>
+					</ToggleGroup>
 				</div>
 			</div>
 
@@ -196,10 +201,18 @@ export default function ActivityPage() {
 					</AlertDescription>
 				</Alert>
 			) : (
-				<DataTable
-					columns={columns}
-					data={filteredEvents}
-				/>
+				<>
+					<DataTable
+						columns={columns}
+						data={filteredEvents}
+						onRowClick={handleRowClick}
+					/>
+					<EventDetailsDrawer
+						event={selectedEvent}
+						open={drawerOpen}
+						onOpenChange={setDrawerOpen}
+					/>
+				</>
 			)}
 		</div>
 	);

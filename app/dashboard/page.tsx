@@ -1,6 +1,14 @@
-import { MetricCard } from '@/components/metrics/metric-card';
+import { Metadata } from 'next';
 import { MetricGrid } from '@/components/metrics/metric-grid';
-import { Activity, AlertTriangle, BarChart3, CheckCircle2 } from 'lucide-react';
+import { MetricCardSkeleton } from '@/components/metrics/metric-card-skeleton';
+import { Suspense } from 'react';
+import { Metrics } from './metrics';
+
+export const metadata: Metadata = {
+	title: 'Overview | Soroban Monitor',
+	description:
+		'Overview dashboard showing key metrics for your Soroban smart contracts',
+};
 
 export default function DashboardPage() {
 	return (
@@ -10,38 +18,18 @@ export default function DashboardPage() {
 			</div>
 
 			<MetricGrid>
-				<MetricCard
-					title='Success Rate'
-					value='98.5%'
-					icon={CheckCircle2}
-					trend={{ value: 2.1, isPositive: true }}
-					description='Last 24 hours'
-					href='/dashboard/performance'
-				/>
-				<MetricCard
-					title='Failures'
-					value='12'
-					icon={AlertTriangle}
-					trend={{ value: 4.5, isPositive: false }}
-					description='Last 24 hours'
-					href='/dashboard/activity'
-				/>
-				<MetricCard
-					title='Average Gas Usage'
-					value='1.2M'
-					icon={BarChart3}
-					trend={{ value: -1.8, isPositive: true }}
-					description='Last 24 hours'
-					href='/dashboard/performance'
-				/>
-				<MetricCard
-					title='Active Alerts'
-					value='2'
-					icon={Activity}
-					trend={{ value: 100, isPositive: false }}
-					description='Last 24 hours'
-					href='/dashboard/alerts'
-				/>
+				<Suspense
+					fallback={
+						<>
+							<MetricCardSkeleton />
+							<MetricCardSkeleton />
+							<MetricCardSkeleton />
+							<MetricCardSkeleton />
+						</>
+					}
+				>
+					<Metrics />
+				</Suspense>
 			</MetricGrid>
 		</div>
 	);

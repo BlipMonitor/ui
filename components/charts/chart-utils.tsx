@@ -16,14 +16,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { format, subDays } from 'date-fns';
 
 export type TimeRange = '7d' | '30d' | '90d';
 
 // Common time range options
 export const timeRangeOptions = [
-	{ value: '90d', label: 'Last 3 months' },
-	{ value: '30d', label: 'Last 30 days' },
-	{ value: '7d', label: 'Last 7 days' },
+	{ value: '90d' as const, label: 'Last 3 months', days: 90 },
+	{ value: '30d' as const, label: 'Last 30 days', days: 30 },
+	{ value: '7d' as const, label: 'Last 7 days', days: 7 },
 ] as const;
 
 // Hook for time range selection
@@ -62,57 +63,48 @@ export function formatDate(value: string) {
 }
 
 // Reusable chart card layout
-interface ChartCardProps {
-	title: string;
-	description: string;
-	timeRange: TimeRange;
-	onTimeRangeChange: (value: TimeRange) => void;
+export interface ChartCardProps {
 	children: React.ReactNode;
-	footer: React.ReactNode;
+	title: string;
+	description?: string;
+	timeRange?: TimeRange;
+	onTimeRangeChange?: (range: TimeRange) => void;
+	footer?: React.ReactNode;
+	action?: React.ReactNode;
 }
 
 export function ChartCard({
+	children,
 	title,
 	description,
 	timeRange,
 	onTimeRangeChange,
-	children,
 	footer,
+	action,
 }: ChartCardProps) {
 	return (
 		<Card>
-			<CardHeader className='flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row'>
-				<div className='grid flex-1 gap-1 text-center sm:text-left'>
-					<CardTitle>{title}</CardTitle>
-					<CardDescription>{description}</CardDescription>
+			<CardHeader>
+				<div className='flex items-center justify-between'>
+					<div>
+						<CardTitle>{title}</CardTitle>
+						{description && (
+							<CardDescription>{description}</CardDescription>
+						)}
+					</div>
+					<div className='flex items-center space-x-2'>
+						{action}
+						{timeRange && onTimeRangeChange && (
+							<TimeRangeSelect
+								value={timeRange}
+								onChange={onTimeRangeChange}
+							/>
+						)}
+					</div>
 				</div>
-				<Select
-					value={timeRange}
-					onValueChange={onTimeRangeChange}
-				>
-					<SelectTrigger
-						className='w-[160px] rounded-lg sm:ml-auto'
-						aria-label='Select time range'
-					>
-						<SelectValue placeholder='Last 3 months' />
-					</SelectTrigger>
-					<SelectContent className='rounded-xl'>
-						{timeRangeOptions.map((option) => (
-							<SelectItem
-								key={option.value}
-								value={option.value}
-								className='rounded-lg'
-							>
-								{option.label}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
 			</CardHeader>
-			<CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
-				{children}
-			</CardContent>
-			<CardFooter>{footer}</CardFooter>
+			<CardContent>{children}</CardContent>
+			{footer && <CardFooter>{footer}</CardFooter>}
 		</Card>
 	);
 }
@@ -131,3 +123,68 @@ export const commonAxisConfig = {
 export const commonGridConfig = {
 	vertical: false,
 } as const;
+
+function TimeRangeSelect({
+	value,
+	onChange,
+}: {
+	value: TimeRange;
+	onChange: (value: TimeRange) => void;
+}) {
+	return (
+		<Select
+			value={value}
+			onValueChange={onChange}
+		>
+			<SelectTrigger
+				className='w-[160px] rounded-lg'
+				aria-label='Select time range'
+			>
+				<SelectValue placeholder='Last 3 months' />
+			</SelectTrigger>
+			<SelectContent className='rounded-xl'>
+				{timeRangeOptions.map((option) => (
+					<SelectItem
+						key={option.value}
+						value={option.value}
+						className='rounded-lg'
+					>
+						{option.label}
+					</SelectItem>
+				))}
+			</SelectContent>
+		</Select>
+	);
+}
+
+export function filterDataByTimeRange<T extends { timestamp: string }>(
+	data: T[],
+	timeRange: TimeRange
+): T[] {
+	const now = new Date();
+	const days =
+		timeRangeOptions.find((opt) => opt.value === timeRange)?.days || 7;
+	const cutoff = subDays(now, days);
+	return data.filter((item) => new Date(item.timestamp) >= cutoff);
+}
+
+export function groupDataByDate<T extends { timestamp: string }, R>(
+	data: T[],
+	reducer: (items: T[]) => R
+): (R & { date: string })[] {
+	const groups = data.reduce((acc, item) => {
+		const date = format(new Date(item.timestamp), 'yyyy-MM-dd');
+		if (!acc[date]) {
+			acc[date] = [];
+		}
+		acc[date].push(item);
+		return acc;
+	}, {} as Record<string, T[]>);
+
+	return Object.entries(groups)
+		.map(([date, items]) => ({
+			date,
+			...reducer(items),
+		}))
+		.sort((a, b) => a.date.localeCompare(b.date));
+}

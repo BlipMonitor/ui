@@ -1,112 +1,167 @@
 'use client';
 
 import * as React from 'react';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { TrendingDown } from 'lucide-react';
-
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { format, subDays } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { TopCallsDialog } from '@/components/performance/top-calls-dialog';
 import {
-	ChartConfig,
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
-} from '@/components/ui/chart';
-import {
-	chartContainerClass,
-	commonAxisConfig,
-	commonGridConfig,
-	formatDate,
-	useTimeRange,
 	ChartCard,
+	TimeRange,
+	filterDataByTimeRange,
+	groupDataByDate,
 } from './chart-utils';
 
-// Sample data - we'll replace this with real response time data later
-const chartData = [
-	{ date: '2024-12-01', responseTime: 120 },
-	{ date: '2024-12-02', responseTime: 180 },
-	{ date: '2024-12-03', responseTime: 150 },
-	{ date: '2024-12-04', responseTime: 140 },
-	{ date: '2024-12-05', responseTime: 130 },
-	{ date: '2024-12-06', responseTime: 125 },
-];
+// Utility function to calculate percentile
+function percentile(arr: number[], p: number) {
+	const sorted = [...arr].sort((a, b) => a - b);
+	const pos = (sorted.length - 1) * (p / 100);
+	const base = Math.floor(pos);
+	const rest = pos - base;
+	if (sorted[base + 1] !== undefined) {
+		return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+	} else {
+		return sorted[base];
+	}
+}
 
-const chartConfig = {
-	responseTime: {
-		label: 'Response Time (ms)',
-		color: 'hsl(var(--chart-4))',
-	},
-} satisfies ChartConfig;
+interface ResponseTime {
+	id: string;
+	timestamp: string;
+	functionName: string;
+	executionTime: number;
+	transactionId: string;
+	success: boolean;
+}
+
+// Sample data - we'll replace this with real response time data later
+const sampleData: ResponseTime[] = Array.from({ length: 30 }, (_, i) => ({
+	id: `call-${i}`,
+	timestamp: subDays(new Date(), i).toISOString(),
+	functionName: `transfer${i % 2 === 0 ? 'From' : 'To'}`,
+	executionTime: Math.random() * 2 + 0.5,
+	transactionId: `0x${Math.random().toString(16).slice(2)}`,
+	success: Math.random() > 0.1,
+}));
 
 export function ResponseTimeChart() {
-	const { timeRange, setTimeRange, filterDataByTimeRange } = useTimeRange();
-	const filteredData = filterDataByTimeRange(chartData);
+	const [timeRange, setTimeRange] = React.useState<TimeRange>('7d');
+	const [showTopCalls, setShowTopCalls] = React.useState(false);
 
-	const averageResponseTime = Math.round(
-		filteredData.reduce((acc, curr) => acc + curr.responseTime, 0) /
-			filteredData.length
-	);
+	// Group data by date and calculate averages
+	const chartData = React.useMemo(() => {
+		const filtered = filterDataByTimeRange(sampleData, timeRange);
+		return groupDataByDate(filtered, (calls: ResponseTime[]) => ({
+			average:
+				calls.reduce((acc, call) => acc + call.executionTime, 0) /
+				calls.length,
+			p95: percentile(
+				calls.map((call) => call.executionTime),
+				95
+			),
+		}));
+	}, [timeRange]);
 
-	const minResponseTime = Math.min(
-		...filteredData.map((d) => d.responseTime)
-	);
-	const maxResponseTime = Math.max(
-		...filteredData.map((d) => d.responseTime)
-	);
+	// Get top calls by execution time
+	const topCalls = React.useMemo(() => {
+		return sampleData
+			.sort((a, b) => b.executionTime - a.executionTime)
+			.slice(0, 20)
+			.map((call) => ({
+				id: call.id,
+				timestamp: new Date(call.timestamp),
+				function: call.functionName,
+				value: call.executionTime,
+				transactionId: call.transactionId,
+			}));
+	}, []);
 
 	return (
 		<ChartCard
 			title='Response Time'
-			description='Average response time distribution'
+			description='Average and P95 response time for contract calls'
 			timeRange={timeRange}
 			onTimeRangeChange={setTimeRange}
-			footer={
-				<div className='flex w-full flex-col items-start gap-2 text-sm'>
-					<div className='flex items-center gap-2 font-medium leading-none'>
-						{averageResponseTime}ms average response time{' '}
-						<TrendingDown className='h-4 w-4' />
-					</div>
-					<div className='grid gap-1 leading-none text-muted-foreground'>
-						<div>Min: {minResponseTime}ms</div>
-						<div>Max: {maxResponseTime}ms</div>
-					</div>
-				</div>
+			action={
+				<Button
+					variant='outline'
+					size='sm'
+					onClick={() => setShowTopCalls(true)}
+				>
+					View Top Calls
+				</Button>
 			}
 		>
-			<ChartContainer
-				config={chartConfig}
-				className={chartContainerClass}
-			>
-				<BarChart
-					data={filteredData}
+			<div className='h-[350px] w-full'>
+				<AreaChart
+					data={chartData}
 					margin={{
 						left: 12,
 						right: 12,
+						top: 12,
+						bottom: 12,
 					}}
-					accessibilityLayer
+					width={800}
+					height={350}
 				>
-					<CartesianGrid {...commonGridConfig} />
+					<defs>
+						<linearGradient
+							id='responseTimeGradient'
+							x1='0'
+							y1='0'
+							x2='0'
+							y2='1'
+						>
+							<stop
+								offset='5%'
+								stopColor='hsl(var(--primary))'
+								stopOpacity={0.2}
+							/>
+							<stop
+								offset='95%'
+								stopColor='hsl(var(--primary))'
+								stopOpacity={0}
+							/>
+						</linearGradient>
+					</defs>
+					<CartesianGrid
+						strokeDasharray='3 3'
+						className='stroke-muted'
+					/>
 					<XAxis
-						{...commonAxisConfig}
 						dataKey='date'
-						minTickGap={32}
-						tickFormatter={formatDate}
+						tickFormatter={(date) =>
+							format(new Date(date), 'MMM d')
+						}
+						className='text-xs'
 					/>
 					<YAxis
-						{...commonAxisConfig}
-						tickFormatter={(value) => `${value}ms`}
+						tickFormatter={(value) => `${value.toFixed(2)}s`}
+						className='text-xs'
 					/>
-					<ChartTooltip
-						cursor={false}
-						content={
-							<ChartTooltipContent labelFormatter={formatDate} />
-						}
+					<Area
+						type='monotone'
+						dataKey='average'
+						stroke='hsl(var(--primary))'
+						fill='url(#responseTimeGradient)'
+						strokeWidth={2}
 					/>
-					<Bar
-						dataKey='responseTime'
-						fill='hsl(var(--chart-4))'
-						radius={[4, 4, 0, 0]}
+					<Area
+						type='monotone'
+						dataKey='p95'
+						stroke='hsl(var(--destructive))'
+						fill='none'
+						strokeWidth={2}
+						strokeDasharray='3 3'
 					/>
-				</BarChart>
-			</ChartContainer>
+				</AreaChart>
+			</div>
+			<TopCallsDialog
+				open={showTopCalls}
+				onOpenChange={setShowTopCalls}
+				type='execution'
+				data={topCalls}
+			/>
 		</ChartCard>
 	);
 }

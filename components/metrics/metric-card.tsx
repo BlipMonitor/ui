@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface MetricCardProps {
 	title: string;
@@ -28,11 +29,10 @@ export function MetricCard({
 				<Icon className='h-4 w-4 text-muted-foreground' />
 				{trend && (
 					<span
-						className={`text-sm ${
-							trend.isPositive
-								? 'text-success'
-								: 'text-destructive'
-						}`}
+						className={cn('text-sm font-medium', {
+							'text-emerald-500': trend.isPositive,
+							'text-rose-500': !trend.isPositive,
+						})}
 					>
 						{trend.value > 0 ? '+' : ''}
 						{trend.value}%

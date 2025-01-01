@@ -14,6 +14,9 @@ export type ActivityEvent = {
 	outcome: 'success' | 'failure';
 	gasUsed: string;
 	executionTime: string;
+	transactionId: string;
+	blockNumber: string;
+	errorMessage?: string;
 };
 
 export const columns: ColumnDef<ActivityEvent>[] = [

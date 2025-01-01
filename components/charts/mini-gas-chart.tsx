@@ -23,7 +23,6 @@ import {
 	commonGridConfig,
 	formatDate,
 	ChartCard,
-	TimeRange,
 } from './chart-utils';
 
 interface GasData {
@@ -137,6 +136,12 @@ export function MiniGasChart() {
 							stroke='hsl(var(--warning))'
 							strokeDasharray='3 3'
 							strokeOpacity={0.5}
+							label={{
+								value: 'Threshold',
+								position: 'right',
+								fill: 'hsl(var(--warning))',
+								fontSize: 12,
+							}}
 						/>
 						<ChartTooltip
 							cursor={{
@@ -147,29 +152,69 @@ export function MiniGasChart() {
 							content={({ label, payload }) => {
 								if (!payload?.length) return null;
 								const value = payload[0].value as number;
+								const percentageOfAverage = (
+									(value / averageGasUsage) * 100 -
+									100
+								).toFixed(1);
+								const isHighUsage = value > threshold;
+
 								return (
-									<ChartTooltipContent
-										label={formatDate(label)}
-										items={[
-											{
-												label: 'Gas Usage',
-												value: `${(
-													value / 1000000
-												).toFixed(1)}M`,
-												color:
-													value > threshold
-														? 'hsl(var(--warning))'
-														: 'hsl(var(--chart-1))',
-											},
-											{
-												label: 'Status',
-												value:
-													value > threshold
+									<div className='rounded-lg border border-border/50 bg-background px-3 py-2 text-sm shadow-xl'>
+										<div className='font-medium'>
+											{formatDate(label)}
+										</div>
+										<div className='mt-1.5 grid gap-1.5'>
+											<div className='flex items-center justify-between gap-2'>
+												<span className='text-muted-foreground'>
+													Gas Usage:
+												</span>
+												<span
+													className={
+														isHighUsage
+															? 'text-warning'
+															: ''
+													}
+												>
+													{(value / 1000000).toFixed(
+														1
+													)}
+													M
+												</span>
+											</div>
+											<div className='flex items-center justify-between gap-2'>
+												<span className='text-muted-foreground'>
+													vs Average:
+												</span>
+												<span
+													className={
+														Number(
+															percentageOfAverage
+														) > 0
+															? 'text-warning'
+															: ''
+													}
+												>
+													{percentageOfAverage}%
+												</span>
+											</div>
+											<div className='flex items-center justify-between gap-2'>
+												<span className='text-muted-foreground'>
+													Status:
+												</span>
+												<span
+													className={
+														isHighUsage
+															? 'text-warning'
+															: ''
+													}
+												>
+													{isHighUsage
 														? '⚠️ High Usage'
-														: 'Normal Usage',
-											},
-										]}
-									/>
+														: 'Normal Usage'}
+												</span>
+											</div>
+										</div>
+									</div>
 								);
 							}}
 						/>
@@ -180,6 +225,24 @@ export function MiniGasChart() {
 							strokeWidth={2}
 							fill='url(#gasUsage)'
 							isAnimationActive={false}
+							activeDot={({ cx, cy, payload }) => {
+								const isHighUsage =
+									payload.gasUsage > threshold;
+								return (
+									<circle
+										cx={cx}
+										cy={cy}
+										r={4}
+										fill={
+											isHighUsage
+												? 'hsl(var(--warning))'
+												: 'hsl(var(--chart-1))'
+										}
+										stroke='var(--background)'
+										strokeWidth={2}
+									/>
+								);
+							}}
 							dot={({ cx, cy, payload }) => {
 								if (!payload || payload.gasUsage <= threshold)
 									return null;

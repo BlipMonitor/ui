@@ -9,6 +9,7 @@ import {
 	CommandGroup,
 	CommandInput,
 	CommandItem,
+	CommandList,
 } from '@/components/ui/command';
 import {
 	Popover,
@@ -73,26 +74,28 @@ export function FunctionFilter({
 			<PopoverContent className='w-[240px] p-0'>
 				<Command>
 					<CommandInput placeholder='Search functions...' />
-					<CommandEmpty>No functions found.</CommandEmpty>
-					<CommandGroup>
-						{functions.map((fn) => (
-							<CommandItem
-								key={fn}
-								value={fn}
-								onSelect={() => toggleFunction(fn)}
-							>
-								<Check
-									className={cn(
-										'mr-2 h-4 w-4',
-										selectedFunctions.includes(fn)
-											? 'opacity-100'
-											: 'opacity-0'
-									)}
-								/>
-								{fn}
-							</CommandItem>
-						))}
-					</CommandGroup>
+					<CommandList>
+						<CommandEmpty>No functions found.</CommandEmpty>
+						<CommandGroup>
+							{functions.map((fn) => (
+								<CommandItem
+									key={fn}
+									value={fn}
+									onSelect={() => toggleFunction(fn)}
+								>
+									<Check
+										className={cn(
+											'mr-2 h-4 w-4',
+											selectedFunctions.includes(fn)
+												? 'opacity-100'
+												: 'opacity-0'
+										)}
+									/>
+									{fn}
+								</CommandItem>
+							))}
+						</CommandGroup>
+					</CommandList>
 				</Command>
 				{selectedFunctions.length > 0 && (
 					<div className='border-t p-2'>

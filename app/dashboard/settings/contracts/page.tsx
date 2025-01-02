@@ -19,7 +19,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { AddContractDialog } from '@/components/add-contract-dialog';
+import { AddContractDialog } from '@/components/contracts/add-contract-dialog';
 import { EditContractDialog } from '@/components/contracts/edit-contract-dialog';
 import {
 	AlertDialog,

@@ -23,8 +23,11 @@ import {
 import { format, isToday, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { AddRuleDialog } from '@/components/alerts/add-rule-dialog';
+import { AlertDetailSheet } from '@/components/alerts/alert-detail-sheet';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AlertsPage() {
+	const { toast } = useToast();
 	const [alerts, setAlerts] = useState<Alert[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -32,6 +35,8 @@ export default function AlertsPage() {
 		'all' | 'active' | 'resolved'
 	>('all');
 	const [date, setDate] = useState<Date>();
+	const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+	const [isDetailOpen, setIsDetailOpen] = useState(false);
 
 	useEffect(() => {
 		// Simulate API call delay
@@ -53,8 +58,42 @@ export default function AlertsPage() {
 	}, []);
 
 	const handleAlertClick = (alert: Alert) => {
-		// We'll implement the drawer in Issue #40
-		console.log('Alert clicked:', alert);
+		setSelectedAlert(alert);
+		setIsDetailOpen(true);
+	};
+
+	const handleAcknowledge = (alertId: string) => {
+		const alert = alerts.find((a) => a.id === alertId);
+		setAlerts((prev) =>
+			prev.map((a) =>
+				a.id === alertId ? { ...a, status: 'resolved' as const } : a
+			)
+		);
+		setIsDetailOpen(false);
+		toast({
+			title: 'Alert Acknowledged',
+			description: `Alert "${alert?.name}" has been acknowledged.`,
+		});
+	};
+
+	const handleResolve = (alertId: string) => {
+		const alert = alerts.find((a) => a.id === alertId);
+		setAlerts((prev) =>
+			prev.map((a) =>
+				a.id === alertId
+					? {
+							...a,
+							status: 'resolved' as const,
+							resolvedAt: new Date(),
+					  }
+					: a
+			)
+		);
+		setIsDetailOpen(false);
+		toast({
+			title: 'Alert Resolved',
+			description: `Alert "${alert?.name}" has been resolved.`,
+		});
 	};
 
 	const filteredAlerts = alerts
@@ -232,6 +271,13 @@ export default function AlertsPage() {
 				columns={columns}
 				data={filteredAlerts}
 				onRowClick={handleAlertClick}
+			/>
+			<AlertDetailSheet
+				alert={selectedAlert}
+				open={isDetailOpen}
+				onOpenChange={setIsDetailOpen}
+				onAcknowledge={handleAcknowledge}
+				onResolve={handleResolve}
 			/>
 		</div>
 	);

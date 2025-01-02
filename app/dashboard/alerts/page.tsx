@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/popover';
 import { format, isToday, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { AddRuleDialog } from '@/components/alerts/add-rule-dialog';
 
 export default function AlertsPage() {
 	const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -100,6 +101,7 @@ export default function AlertsPage() {
 			<div className='flex flex-1 flex-col gap-4 p-4'>
 				<div className='flex items-center justify-between'>
 					<h1 className='text-lg font-medium'>Recent Alerts</h1>
+					<AddRuleDialog />
 				</div>
 				<AlertUI variant='destructive'>
 					<AlertCircle className='h-4 w-4' />
@@ -207,7 +209,10 @@ export default function AlertsPage() {
 			<div className='flex flex-1 flex-col gap-4 p-4'>
 				<div className='flex items-center justify-between'>
 					<h1 className='text-lg font-medium'>Recent Alerts</h1>
-					{renderFilters()}
+					<div className='flex items-center gap-4'>
+						{renderFilters()}
+						<AddRuleDialog />
+					</div>
 				</div>
 				<NoAlerts />
 			</div>
@@ -218,7 +223,10 @@ export default function AlertsPage() {
 		<div className='flex flex-1 flex-col gap-4 p-4'>
 			<div className='flex items-center justify-between'>
 				<h1 className='text-lg font-medium'>Recent Alerts</h1>
-				{renderFilters()}
+				<div className='flex items-center gap-4'>
+					{renderFilters()}
+					<AddRuleDialog />
+				</div>
 			</div>
 			<DataTable
 				columns={columns}

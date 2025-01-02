@@ -14,15 +14,28 @@ import {
 
 interface RecentAlertsCardProps {
 	alerts: Alert[];
+	onAlertClick?: (alert: Alert) => void;
 }
 
-export function RecentAlertsCard({ alerts }: RecentAlertsCardProps) {
+export function RecentAlertsCard({
+	alerts,
+	onAlertClick,
+}: RecentAlertsCardProps) {
 	const router = useRouter();
+
+	const handleCardClick = (e: React.MouseEvent, alert?: Alert) => {
+		if (alert && onAlertClick) {
+			e.stopPropagation();
+			onAlertClick(alert);
+		} else {
+			router.push('/dashboard/alerts/feed');
+		}
+	};
 
 	return (
 		<Card
-			className='col-span-3 hover:bg-muted/50 transition-colors cursor-pointer'
-			onClick={() => router.push('/dashboard/alerts/feed')}
+			className='col-span-3 cursor-pointer transition-colors hover:bg-muted/50'
+			onClick={(e) => handleCardClick(e)}
 		>
 			<CardHeader>
 				<CardTitle>Recent Alerts</CardTitle>
@@ -36,6 +49,7 @@ export function RecentAlertsCard({ alerts }: RecentAlertsCardProps) {
 						<div
 							key={alert.id}
 							className='flex flex-col gap-1'
+							onClick={(e) => handleCardClick(e, alert)}
 						>
 							<div className='flex items-center justify-between'>
 								<span className='text-sm font-medium'>

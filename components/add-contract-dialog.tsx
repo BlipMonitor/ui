@@ -26,6 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
 	contractId: z
@@ -44,15 +45,18 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface AddContractDialogProps {
+	onAdd: (contract: FormValues & { id: string; dateAdded: Date }) => void;
 	trigger?: React.ReactNode;
 	onOpenChange?: (open: boolean) => void;
 }
 
 export function AddContractDialog({
+	onAdd,
 	trigger,
 	onOpenChange,
 }: AddContractDialogProps) {
 	const [open, setOpen] = React.useState(false);
+	const { toast } = useToast();
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -82,9 +86,16 @@ export function AddContractDialog({
 	);
 
 	function onSubmit(data: FormValues) {
-		// For MVP, just log the data
-		console.log('Contract Data:', data);
+		onAdd({
+			...data,
+			id: crypto.randomUUID(),
+			dateAdded: new Date(),
+		});
 		handleOpenChange(false);
+		toast({
+			title: 'Contract Added',
+			description: `${data.friendlyName} has been added successfully.`,
+		});
 		form.reset();
 	}
 
@@ -197,7 +208,7 @@ export function AddContractDialog({
 							<Button
 								type='button'
 								variant='outline'
-								onClick={() => setOpen(false)}
+								onClick={() => handleOpenChange(false)}
 							>
 								Cancel
 							</Button>

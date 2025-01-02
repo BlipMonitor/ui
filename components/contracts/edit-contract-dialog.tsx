@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -26,6 +24,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
@@ -44,25 +48,32 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface AddContractDialogProps {
-	onAdd: (contract: FormValues & { id: string; dateAdded: Date }) => void;
+interface EditContractDialogProps {
+	contract: {
+		id: string;
+		contractId: string;
+		friendlyName: string;
+		network: 'mainnet' | 'testnet';
+	};
+	onSave: (contract: FormValues & { id: string }) => void;
 	trigger?: React.ReactNode;
 	onOpenChange?: (open: boolean) => void;
 }
 
-export function AddContractDialog({
-	onAdd,
+export function EditContractDialog({
+	contract,
+	onSave,
 	trigger,
 	onOpenChange,
-}: AddContractDialogProps) {
+}: EditContractDialogProps) {
 	const [open, setOpen] = React.useState(false);
 	const { toast } = useToast();
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			contractId: '',
-			friendlyName: '',
-			network: 'mainnet',
+			contractId: contract.contractId,
+			friendlyName: contract.friendlyName,
+			network: contract.network,
 		},
 	});
 
@@ -86,15 +97,11 @@ export function AddContractDialog({
 	);
 
 	function onSubmit(data: FormValues) {
-		onAdd({
-			...data,
-			id: crypto.randomUUID(),
-			dateAdded: new Date(),
-		});
+		onSave({ ...data, id: contract.id });
 		handleOpenChange(false);
 		toast({
-			title: 'Contract Added',
-			description: `${data.friendlyName} has been added successfully.`,
+			title: 'Contract Updated',
+			description: `${data.friendlyName} has been updated successfully.`,
 		});
 		form.reset();
 	}
@@ -104,24 +111,15 @@ export function AddContractDialog({
 			open={open}
 			onOpenChange={handleOpenChange}
 		>
-			<DialogTrigger asChild>
-				{trigger || (
-					<Button>
-						Add Contract
-						<kbd className='pointer-events-none ml-2 hidden select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:inline-flex'>
-							<span className='text-xs'>⌘</span>K
-						</kbd>
-					</Button>
-				)}
-			</DialogTrigger>
+			<DialogTrigger asChild>{trigger}</DialogTrigger>
 			<DialogContent className='sm:max-w-[425px]'>
 				<DialogHeader>
-					<DialogTitle>Add Contract</DialogTitle>
+					<DialogTitle>Edit Contract</DialogTitle>
 					<DialogDescription>
-						Enter your Soroban contract details below to start
-						monitoring.
+						Update your Soroban contract details below.
 					</DialogDescription>
 				</DialogHeader>
+
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(onSubmit)}
@@ -147,6 +145,7 @@ export function AddContractDialog({
 								</FormItem>
 							)}
 						/>
+
 						<FormField
 							control={form.control}
 							name='friendlyName'
@@ -166,6 +165,7 @@ export function AddContractDialog({
 								</FormItem>
 							)}
 						/>
+
 						<FormField
 							control={form.control}
 							name='network'
@@ -204,6 +204,7 @@ export function AddContractDialog({
 								</FormItem>
 							)}
 						/>
+
 						<div className='flex justify-end space-x-4 pt-4'>
 							<Button
 								type='button'
@@ -212,7 +213,27 @@ export function AddContractDialog({
 							>
 								Cancel
 							</Button>
-							<Button type='submit'>Add Contract</Button>
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button type='submit'>
+											Save Changes
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent side='bottom'>
+										<div className='flex items-center gap-1'>
+											Press
+											<div className='pointer-events-none rounded border bg-muted px-1.5 font-mono text-[10px]'>
+												<span className='text-xs'>
+													⌘
+												</span>
+												K
+											</div>
+											to edit
+										</div>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
 						</div>
 					</form>
 				</Form>

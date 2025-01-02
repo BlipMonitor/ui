@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import {
 	Table,
 	TableBody,
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { AddContractDialog } from '@/components/add-contract-dialog';
+import { EditContractDialog } from '@/components/contracts/edit-contract-dialog';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -32,40 +33,98 @@ import {
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-
-// Using the same sample contracts from contract-switcher for now
-const sampleContracts = [
-	{
-		name: 'Token Contract',
-		contractId: 'CACT...X4WY',
-		network: 'mainnet',
-	},
-	{
-		name: 'Liquidity Pool',
-		contractId: 'CBXC...L9MN',
-		network: 'mainnet',
-	},
-	{
-		name: 'NFT Marketplace',
-		contractId: 'CDEF...K3PQ',
-		network: 'testnet',
-	},
-];
+import { useToast } from '@/hooks/use-toast';
+import { type Contract } from '@/lib/schemas/contract';
+import { generateMockContracts } from '@/lib/mock/contracts';
+import { Input } from '@/components/ui/input';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
 
 export default function ContractsSettingsPage() {
-	const [contracts, setContracts] = React.useState(sampleContracts);
+	const [contracts, setContracts] = React.useState<Contract[]>([]);
 	const [isLoading, setIsLoading] = React.useState(true);
+	const [search, setSearch] = React.useState('');
+	const [networkFilter, setNetworkFilter] = React.useState<string>('all');
+	const [sortConfig, setSortConfig] = React.useState<{
+		key: keyof Contract;
+		direction: 'asc' | 'desc';
+	}>({ key: 'friendlyName', direction: 'asc' });
+	const { toast } = useToast();
 
 	React.useEffect(() => {
-		// Simulate loading state
-		const timer = setTimeout(() => setIsLoading(false), 1000);
+		// Simulate loading state and fetch mock data
+		const timer = setTimeout(() => {
+			setContracts(generateMockContracts(5));
+			setIsLoading(false);
+		}, 1000);
 		return () => clearTimeout(timer);
 	}, []);
 
-	const handleDeleteContract = (contract: (typeof sampleContracts)[0]) => {
+	const handleAddContract = (contract: Contract) => {
+		setContracts((prev) => [...prev, contract]);
+		toast({
+			title: 'Contract Added',
+			description: `${contract.friendlyName} has been added successfully.`,
+		});
+	};
+
+	const handleEditContract = (updatedContract: Contract) => {
 		setContracts((prev) =>
-			prev.filter((c) => c.contractId !== contract.contractId)
+			prev.map((c) => (c.id === updatedContract.id ? updatedContract : c))
 		);
+	};
+
+	const handleDeleteContract = (contract: Contract) => {
+		setContracts((prev) => prev.filter((c) => c.id !== contract.id));
+		toast({
+			title: 'Contract Deleted',
+			description: `${contract.friendlyName} has been deleted.`,
+			variant: 'destructive',
+		});
+	};
+
+	// Filter and sort contracts
+	const filteredContracts = React.useMemo(() => {
+		return contracts
+			.filter((contract) => {
+				const matchesSearch =
+					search === '' ||
+					contract.friendlyName
+						.toLowerCase()
+						.includes(search.toLowerCase()) ||
+					contract.contractId
+						.toLowerCase()
+						.includes(search.toLowerCase());
+				const matchesNetwork =
+					networkFilter === 'all' ||
+					contract.network === networkFilter;
+				return matchesSearch && matchesNetwork;
+			})
+			.sort((a, b) => {
+				const aValue = a[sortConfig.key];
+				const bValue = b[sortConfig.key];
+				const direction = sortConfig.direction === 'asc' ? 1 : -1;
+
+				if (typeof aValue === 'string' && typeof bValue === 'string') {
+					return aValue.localeCompare(bValue) * direction;
+				}
+				return 0;
+			});
+	}, [contracts, search, networkFilter, sortConfig]);
+
+	const handleSort = (key: keyof Contract) => {
+		setSortConfig((current) => ({
+			key,
+			direction:
+				current.key === key && current.direction === 'asc'
+					? 'desc'
+					: 'asc',
+		}));
 	};
 
 	return (
@@ -80,6 +139,7 @@ export default function ContractsSettingsPage() {
 					</p>
 				</div>
 				<AddContractDialog
+					onAdd={handleAddContract}
 					trigger={
 						<Button size='sm'>
 							<Plus className='mr-2 h-4 w-4' />
@@ -89,13 +149,74 @@ export default function ContractsSettingsPage() {
 				/>
 			</div>
 
+			<div className='flex items-center gap-3'>
+				<div className='relative flex-1'>
+					<Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
+					<Input
+						placeholder='Search by name or contract ID...'
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+						className='pl-8'
+					/>
+				</div>
+				<Select
+					value={networkFilter}
+					onValueChange={setNetworkFilter}
+				>
+					<SelectTrigger className='w-[140px]'>
+						<SelectValue placeholder='Select network' />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value='all'>All Networks</SelectItem>
+						<SelectItem value='mainnet'>Mainnet</SelectItem>
+						<SelectItem value='testnet'>Testnet</SelectItem>
+					</SelectContent>
+				</Select>
+			</div>
+
 			<div className='rounded-md border'>
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead className='w-[200px]'>Name</TableHead>
-							<TableHead>Contract ID</TableHead>
-							<TableHead className='w-[100px]'>Network</TableHead>
+							<TableHead
+								className='w-[200px] cursor-pointer'
+								onClick={() => handleSort('friendlyName')}
+							>
+								Name{' '}
+								{sortConfig.key === 'friendlyName' && (
+									<span className='ml-1'>
+										{sortConfig.direction === 'asc'
+											? '↑'
+											: '↓'}
+									</span>
+								)}
+							</TableHead>
+							<TableHead
+								className='cursor-pointer'
+								onClick={() => handleSort('contractId')}
+							>
+								Contract ID{' '}
+								{sortConfig.key === 'contractId' && (
+									<span className='ml-1'>
+										{sortConfig.direction === 'asc'
+											? '↑'
+											: '↓'}
+									</span>
+								)}
+							</TableHead>
+							<TableHead
+								className='w-[100px] cursor-pointer'
+								onClick={() => handleSort('network')}
+							>
+								Network{' '}
+								{sortConfig.key === 'network' && (
+									<span className='ml-1'>
+										{sortConfig.direction === 'asc'
+											? '↑'
+											: '↓'}
+									</span>
+								)}
+							</TableHead>
 							<TableHead className='w-[100px] text-right'>
 								Actions
 							</TableHead>
@@ -119,23 +240,24 @@ export default function ContractsSettingsPage() {
 									</TableCell>
 								</TableRow>
 							))
-						) : contracts.length === 0 ? (
+						) : filteredContracts.length === 0 ? (
 							<TableRow>
 								<TableCell
 									colSpan={4}
 									className='h-[72px] text-center'
 								>
 									<p className='text-sm text-muted-foreground'>
-										No contracts added yet. Add your first
-										contract to get started.
+										{contracts.length === 0
+											? 'No contracts added yet. Add your first contract to get started.'
+											: 'No contracts match your search criteria.'}
 									</p>
 								</TableCell>
 							</TableRow>
 						) : (
-							contracts.map((contract) => (
-								<TableRow key={contract.contractId}>
+							filteredContracts.map((contract) => (
+								<TableRow key={contract.id}>
 									<TableCell className='font-medium'>
-										{contract.name}
+										{contract.friendlyName}
 									</TableCell>
 									<TableCell className='font-mono text-sm'>
 										{contract.contractId}
@@ -145,7 +267,10 @@ export default function ContractsSettingsPage() {
 											className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
 												contract.network === 'mainnet'
 													? 'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20'
-													: 'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400 dark:ring-yellow-500/20'
+													: contract.network ===
+													  'testnet'
+													? 'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400 dark:ring-yellow-500/20'
+													: 'bg-purple-50 text-purple-700 ring-purple-600/20 dark:bg-purple-900/30 dark:text-purple-400 dark:ring-purple-500/20'
 											}`}
 										>
 											{contract.network}
@@ -193,16 +318,19 @@ export default function ContractsSettingsPage() {
 												<DropdownMenuLabel>
 													Actions
 												</DropdownMenuLabel>
-												<DropdownMenuItem
-													onClick={() =>
-														console.log(
-															'Edit',
-															contract
-														)
+												<EditContractDialog
+													contract={contract}
+													onSave={handleEditContract}
+													trigger={
+														<DropdownMenuItem
+															onSelect={(e) =>
+																e.preventDefault()
+															}
+														>
+															Edit Contract
+														</DropdownMenuItem>
 													}
-												>
-													Edit Contract
-												</DropdownMenuItem>
+												/>
 												<DropdownMenuSeparator />
 												<AlertDialog>
 													<AlertDialogTrigger asChild>
@@ -225,7 +353,7 @@ export default function ContractsSettingsPage() {
 																want to delete{' '}
 																<span className='font-medium'>
 																	{
-																		contract.name
+																		contract.friendlyName
 																	}
 																</span>
 																? This action

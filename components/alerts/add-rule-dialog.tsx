@@ -61,7 +61,10 @@ export function AddRuleDialog() {
 				<TooltipProvider>
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<Button size='sm'>
+							<Button
+								size='sm'
+								onClick={() => setOpen(true)}
+							>
 								<Plus className='mr-2 h-4 w-4' />
 								Add Rule
 							</Button>

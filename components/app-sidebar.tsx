@@ -88,6 +88,10 @@ const data = {
 					url: '/dashboard/settings/contracts',
 				},
 				{
+					title: 'Notifications',
+					url: '/dashboard/settings/notifications',
+				},
+				{
 					title: 'Account',
 					url: '/dashboard/settings/account',
 				},

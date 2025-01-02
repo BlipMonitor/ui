@@ -11,11 +11,13 @@ import { generateMockRules } from '@/lib/mock/alert-rules';
 import { useState, useEffect } from 'react';
 import { AlertRule } from '@/lib/schemas/alert-rule';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 type RuleWithId = AlertRule & { id: string };
 
 export default function AlertRulesPage() {
 	const router = useRouter();
+	const { toast } = useToast();
 	const [rules, setRules] = useState<RuleWithId[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [selectedRule, setSelectedRule] = useState<RuleWithId | null>(null);
@@ -51,6 +53,17 @@ export default function AlertRulesPage() {
 				rule.id === ruleId ? { ...rule, isActive: checked } : rule
 			)
 		);
+
+		const rule = rules.find((r) => r.id === ruleId);
+		if (rule) {
+			toast({
+				title: checked ? 'Rule Activated' : 'Rule Deactivated',
+				description: `"${rule.name}" has been ${
+					checked ? 'activated' : 'deactivated'
+				}.`,
+				variant: checked ? 'default' : 'destructive',
+			});
+		}
 	};
 
 	if (loading) {

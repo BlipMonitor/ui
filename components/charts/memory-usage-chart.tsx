@@ -69,7 +69,7 @@ const CustomTooltip = ({
 							Average
 						</span>
 						<span className='font-bold'>
-							{payload[0].value.toFixed(2)}s
+							{payload[0].value.toFixed(2)}KB
 						</span>
 					</div>
 					<div className='flex flex-col'>
@@ -77,7 +77,7 @@ const CustomTooltip = ({
 							P95
 						</span>
 						<span className='font-bold'>
-							{payload[1].value.toFixed(2)}s
+							{payload[1].value.toFixed(2)}KB
 						</span>
 					</div>
 				</div>
@@ -90,7 +90,7 @@ const CustomTooltip = ({
 	return null;
 };
 
-export function ResponseTimeChart() {
+export function MemoryUsageChart() {
 	const [timeRange, setTimeRange] = React.useState<TimeRange>('7d');
 	const [showTopCalls, setShowTopCalls] = React.useState(false);
 
@@ -98,7 +98,7 @@ export function ResponseTimeChart() {
 	const mockData = React.useMemo(() => {
 		const count = 90 * 24; // 3 months of data points (24 per day)
 		const metrics = generateMockPerformanceMetrics(count, {
-			pattern: 'normal', // Use normal pattern for execution time
+			pattern: 'normal', // Use normal pattern for memory usage
 		});
 		// Convert Date to string
 		return metrics.map((metric) => ({
@@ -111,27 +111,27 @@ export function ResponseTimeChart() {
 	const chartData = React.useMemo(() => {
 		const filtered = filterDataByTimeRange(mockData, timeRange);
 		return groupDataByDate(filtered, (metrics: MockMetric[]) => {
-			const executionTimes = metrics.map((m) => m.executionTime || 0);
+			const memoryUsages = metrics.map((m) => m.memoryUsage || 0);
 			return {
 				average:
-					executionTimes.reduce((acc, time) => acc + time, 0) /
-					executionTimes.length /
-					1000, // Convert to seconds
-				p95: percentile(executionTimes, 95) / 1000, // Convert to seconds
+					memoryUsages.reduce((acc, memory) => acc + memory, 0) /
+					memoryUsages.length /
+					1024, // Convert to KB
+				p95: percentile(memoryUsages, 95) / 1024, // Convert to KB
 			};
 		});
 	}, [mockData, timeRange]);
 
-	// Get top calls by execution time
+	// Get top calls by memory usage
 	const topCalls = React.useMemo(() => {
 		return mockData
-			.sort((a, b) => (b.executionTime || 0) - (a.executionTime || 0))
+			.sort((a, b) => (b.memoryUsage || 0) - (a.memoryUsage || 0))
 			.slice(0, 20)
 			.map((metric) => ({
 				id: metric.transactionHash,
 				timestamp: new Date(metric.timestamp),
 				function: 'Contract Call',
-				value: (metric.executionTime || 0) / 1000, // Convert to seconds
+				value: (metric.memoryUsage || 0) / 1024,
 				transactionId: `${metric.transactionHash.slice(
 					0,
 					6
@@ -141,10 +141,10 @@ export function ResponseTimeChart() {
 
 	return (
 		<ChartCard
-			title='Response Time'
+			title='Memory Usage'
 			description={
 				<div className='flex items-center gap-2'>
-					Average and P95 response time for contract calls
+					Average and P95 memory usage for contract calls
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger>
@@ -152,14 +152,14 @@ export function ResponseTimeChart() {
 							</TooltipTrigger>
 							<TooltipContent>
 								<p className='max-w-xs'>
-									<strong>Average:</strong> Mean execution
-									time per contract call.
+									<strong>Average:</strong> Mean memory
+									consumption per contract call.
 									<br />
 									<strong>P95:</strong> 95th percentile - 95%
-									of calls complete within this time.
+									of calls use this amount of memory or less.
 									<br />
-									Lower response times indicate better
-									performance.
+									Higher memory usage indicates more
+									resource-intensive operations.
 								</p>
 							</TooltipContent>
 						</Tooltip>
@@ -174,7 +174,7 @@ export function ResponseTimeChart() {
 					size='sm'
 					onClick={() => setShowTopCalls(true)}
 				>
-					View Top Calls by Time
+					View Top Calls by Memory
 				</Button>
 			}
 		>
@@ -194,7 +194,7 @@ export function ResponseTimeChart() {
 					>
 						<defs>
 							<linearGradient
-								id='responseTimeGradient'
+								id='memoryUsageGradient'
 								x1='0'
 								y1='0'
 								x2='0'
@@ -224,14 +224,14 @@ export function ResponseTimeChart() {
 							className='text-xs'
 						/>
 						<YAxis
-							tickFormatter={(value) => `${value.toFixed(2)}s`}
+							tickFormatter={(value) => `${value.toFixed(2)}KB`}
 							className='text-xs'
 						/>
 						<Area
 							type='monotone'
 							dataKey='average'
 							stroke='hsl(var(--primary))'
-							fill='url(#responseTimeGradient)'
+							fill='url(#memoryUsageGradient)'
 							strokeWidth={2}
 						/>
 						<Area
@@ -249,7 +249,7 @@ export function ResponseTimeChart() {
 			<TopCallsDialog
 				open={showTopCalls}
 				onOpenChange={setShowTopCalls}
-				type='execution'
+				type='memory'
 				data={topCalls}
 			/>
 		</ChartCard>

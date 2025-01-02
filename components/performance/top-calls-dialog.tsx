@@ -30,7 +30,7 @@ interface TopCall {
 interface TopCallsDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	type: 'gas' | 'execution';
+	type: 'gas' | 'execution' | 'memory';
 	data: TopCall[];
 }
 
@@ -49,6 +49,39 @@ export function TopCallsDialog({
 		page * itemsPerPage
 	);
 
+	const getTitle = () => {
+		switch (type) {
+			case 'gas':
+				return 'Gas Usage';
+			case 'execution':
+				return 'Execution Time';
+			case 'memory':
+				return 'Memory Usage';
+		}
+	};
+
+	const getDescription = () => {
+		switch (type) {
+			case 'gas':
+				return 'Contract calls that consumed the most gas';
+			case 'execution':
+				return 'Contract calls that took the longest to execute';
+			case 'memory':
+				return 'Contract calls that used the most memory';
+		}
+	};
+
+	const formatValue = (value: number) => {
+		switch (type) {
+			case 'gas':
+				return `${(value / 1000000).toFixed(2)}M`;
+			case 'execution':
+				return `${value.toFixed(2)}s`;
+			case 'memory':
+				return `${value.toFixed(2)}KB`;
+		}
+	};
+
 	return (
 		<Dialog
 			open={open}
@@ -56,15 +89,8 @@ export function TopCallsDialog({
 		>
 			<DialogContent className='max-w-3xl'>
 				<DialogHeader>
-					<DialogTitle>
-						Top Calls by{' '}
-						{type === 'gas' ? 'Gas Usage' : 'Execution Time'}
-					</DialogTitle>
-					<DialogDescription>
-						{type === 'gas'
-							? 'Contract calls that consumed the most gas'
-							: 'Contract calls that took the longest to execute'}
-					</DialogDescription>
+					<DialogTitle>Top Calls by {getTitle()}</DialogTitle>
+					<DialogDescription>{getDescription()}</DialogDescription>
 				</DialogHeader>
 				<div className='relative'>
 					<Table>
@@ -72,11 +98,7 @@ export function TopCallsDialog({
 							<TableRow>
 								<TableHead>Timestamp</TableHead>
 								<TableHead>Function</TableHead>
-								<TableHead>
-									{type === 'gas'
-										? 'Gas Used'
-										: 'Execution Time'}
-								</TableHead>
+								<TableHead>{getTitle()}</TableHead>
 								<TableHead>Transaction ID</TableHead>
 							</TableRow>
 						</TableHeader>
@@ -90,11 +112,7 @@ export function TopCallsDialog({
 										{call.function}
 									</TableCell>
 									<TableCell>
-										{type === 'gas'
-											? `${(call.value / 1000000).toFixed(
-													2
-											  )}M`
-											: `${call.value.toFixed(2)}s`}
+										{formatValue(call.value)}
 									</TableCell>
 									<TableCell className='font-mono'>
 										{call.transactionId}

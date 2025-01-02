@@ -66,7 +66,7 @@ export function formatDate(value: string) {
 export interface ChartCardProps {
 	children: React.ReactNode;
 	title: string;
-	description?: string;
+	description?: React.ReactNode;
 	timeRange?: TimeRange;
 	onTimeRangeChange?: (range: TimeRange) => void;
 	footer?: React.ReactNode;

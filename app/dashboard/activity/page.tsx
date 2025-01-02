@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { AlertCircle, CalendarIcon, RefreshCcw } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { columns, type ActivityEvent } from './columns';
 import { DataTable } from './data-table';
@@ -18,68 +18,59 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { EventDetailsDrawer } from '@/components/events/event-details-drawer';
 import { FunctionFilter } from '@/components/events/function-filter';
+import { generateMockEvents, type ContractEvent } from '@/lib/mock/events';
 
-// Sample data - replace with real data later
-const sampleEvents: ActivityEvent[] = [
-	{
-		id: '1',
-		timestamp: new Date('2024-02-20T10:30:00'),
-		function: 'transfer',
-		outcome: 'success',
-		gasUsed: '21,000',
-		executionTime: '2.3s',
-		transactionId: 'tx_0x1234567890abcdef',
-		blockNumber: '12345678',
-	},
-	{
-		id: '2',
-		timestamp: new Date('2024-02-20T11:15:00'),
-		function: 'swap',
-		outcome: 'failure',
-		gasUsed: '45,000',
-		executionTime: '3.1s',
-		transactionId: 'tx_0xabcdef1234567890',
-		blockNumber: '12345679',
-		errorMessage: 'Insufficient liquidity for swap operation.',
-	},
-	{
-		id: '3',
-		timestamp: new Date('2024-02-20T12:00:00'),
-		function: 'mint',
-		outcome: 'success',
-		gasUsed: '32,000',
-		executionTime: '1.8s',
-		transactionId: 'tx_0x9876543210fedcba',
-		blockNumber: '12345680',
-	},
-];
-
-// Extract unique function names
-const uniqueFunctions = Array.from(
-	new Set(sampleEvents.map((event) => event.function))
-).sort();
+// Convert ContractEvent to ActivityEvent
+function convertToActivityEvent(event: ContractEvent): ActivityEvent {
+	return {
+		id: event.id,
+		timestamp: event.timestamp,
+		function: event.functionName || event.type,
+		status: event.status,
+		gasUsed: event.gasUsed?.toLocaleString() || '-',
+		executionTime: event.executionTime ? `${event.executionTime}ms` : '-',
+		transactionId: event.transactionHash,
+		blockNumber: event.transactionHash.slice(0, 8), // Mock block number from tx hash
+		errorMessage: event.error,
+	};
+}
 
 export default function ActivityPage() {
+	const [events, setEvents] = useState<ActivityEvent[]>([]);
 	const [date, setDate] = useState<Date>();
-	const [outcome, setOutcome] = useState<'all' | 'success' | 'failure'>(
-		'all'
-	);
+	const [status, setStatus] = useState<
+		'all' | 'success' | 'failure' | 'pending'
+	>('all');
 	const [selectedFunctions, setSelectedFunctions] = useState<string[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
-	const [selectedEvent, setSelectedEvent] = useState<
-		(typeof sampleEvents)[0] | null
-	>(null);
+	const [selectedEvent, setSelectedEvent] = useState<ActivityEvent | null>(
+		null
+	);
 	const [drawerOpen, setDrawerOpen] = useState(false);
 
-	// Simulate loading and potential error for demo
-	setTimeout(() => {
-		setIsLoading(false);
-	}, 1000);
+	// Load mock data
+	useEffect(() => {
+		try {
+			const mockEvents = generateMockEvents(50).map(
+				convertToActivityEvent
+			);
+			setEvents(mockEvents);
+			setIsLoading(false);
+		} catch {
+			setError('Failed to load activity data');
+			setIsLoading(false);
+		}
+	}, []);
 
-	const filteredEvents = sampleEvents.filter((event) => {
-		// First filter by outcome
-		if (outcome !== 'all' && event.outcome !== outcome) {
+	// Extract unique function names from actual data
+	const uniqueFunctions = Array.from(
+		new Set(events.map((event) => event.function))
+	).sort();
+
+	const filteredEvents = events.filter((event) => {
+		// First filter by status
+		if (status !== 'all' && event.status !== status) {
 			return false;
 		}
 
@@ -104,9 +95,24 @@ export default function ActivityPage() {
 		return true;
 	});
 
-	const handleRowClick = (event: (typeof sampleEvents)[0]) => {
+	const handleRowClick = (event: ActivityEvent) => {
 		setSelectedEvent(event);
 		setDrawerOpen(true);
+	};
+
+	const handleRefresh = () => {
+		setIsLoading(true);
+		setError(null);
+		try {
+			const mockEvents = generateMockEvents(50).map(
+				convertToActivityEvent
+			);
+			setEvents(mockEvents);
+			setIsLoading(false);
+		} catch {
+			setError('Failed to refresh activity data');
+			setIsLoading(false);
+		}
 	};
 
 	if (isLoading) {
@@ -167,9 +173,9 @@ export default function ActivityPage() {
 					</Popover>
 					<ToggleGroup
 						type='single'
-						value={outcome}
+						value={status}
 						onValueChange={(value) =>
-							setOutcome(value as typeof outcome)
+							setStatus(value as typeof status)
 						}
 						className='justify-start'
 					>
@@ -191,6 +197,12 @@ export default function ActivityPage() {
 						>
 							Failures
 						</ToggleGroupItem>
+						<ToggleGroupItem
+							value='pending'
+							aria-label='Show pending events'
+						>
+							Pending
+						</ToggleGroupItem>
 					</ToggleGroup>
 					<FunctionFilter
 						functions={uniqueFunctions}
@@ -209,12 +221,7 @@ export default function ActivityPage() {
 						<Button
 							variant='outline'
 							size='sm'
-							onClick={() => {
-								setIsLoading(true);
-								setError(null);
-								// Simulate retry
-								setTimeout(() => setIsLoading(false), 1000);
-							}}
+							onClick={handleRefresh}
 						>
 							<RefreshCcw className='mr-2 h-4 w-4' />
 							Retry

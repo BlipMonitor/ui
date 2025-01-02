@@ -2,10 +2,9 @@
 
 import { Suspense } from 'react';
 import { ChartSkeleton } from '@/components/charts/chart-skeleton';
-import { ContractCallsChart } from '@/components/charts/contract-calls-chart';
-import { ResourceUsageChart } from '@/components/charts/resource-usage-chart';
 import { ResponseTimeChart } from '@/components/charts/response-time-chart';
-import { SuccessRateChart } from '@/components/charts/success-rate-chart';
+import { GasUsageChart } from '@/components/charts/gas-usage-chart';
+import { MemoryUsageChart } from '@/components/charts/memory-usage-chart';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function PerformancePage() {
@@ -22,10 +21,10 @@ export default function PerformancePage() {
 				<TabsContent value='gas'>
 					<div className='grid gap-4 sm:grid-cols-2'>
 						<Suspense fallback={<ChartSkeleton />}>
-							<ContractCallsChart />
+							<GasUsageChart />
 						</Suspense>
 						<Suspense fallback={<ChartSkeleton />}>
-							<SuccessRateChart />
+							<MemoryUsageChart />
 						</Suspense>
 					</div>
 				</TabsContent>
@@ -33,9 +32,6 @@ export default function PerformancePage() {
 					<div className='grid gap-4 sm:grid-cols-2'>
 						<Suspense fallback={<ChartSkeleton />}>
 							<ResponseTimeChart />
-						</Suspense>
-						<Suspense fallback={<ChartSkeleton />}>
-							<ResourceUsageChart />
 						</Suspense>
 					</div>
 				</TabsContent>

@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { AddContractDialog } from '@/components/add-contract-dialog';
+import { EditContractDialog } from '@/components/contracts/edit-contract-dialog';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -32,40 +33,45 @@ import {
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-
-// Using the same sample contracts from contract-switcher for now
-const sampleContracts = [
-	{
-		name: 'Token Contract',
-		contractId: 'CACT...X4WY',
-		network: 'mainnet',
-	},
-	{
-		name: 'Liquidity Pool',
-		contractId: 'CBXC...L9MN',
-		network: 'mainnet',
-	},
-	{
-		name: 'NFT Marketplace',
-		contractId: 'CDEF...K3PQ',
-		network: 'testnet',
-	},
-];
+import { useToast } from '@/hooks/use-toast';
+import { type Contract } from '@/lib/schemas/contract';
+import { generateMockContracts } from '@/lib/mock/contracts';
 
 export default function ContractsSettingsPage() {
-	const [contracts, setContracts] = React.useState(sampleContracts);
+	const [contracts, setContracts] = React.useState<Contract[]>([]);
 	const [isLoading, setIsLoading] = React.useState(true);
+	const { toast } = useToast();
 
 	React.useEffect(() => {
-		// Simulate loading state
-		const timer = setTimeout(() => setIsLoading(false), 1000);
+		// Simulate loading state and fetch mock data
+		const timer = setTimeout(() => {
+			setContracts(generateMockContracts(5));
+			setIsLoading(false);
+		}, 1000);
 		return () => clearTimeout(timer);
 	}, []);
 
-	const handleDeleteContract = (contract: (typeof sampleContracts)[0]) => {
+	const handleAddContract = (contract: Contract) => {
+		setContracts((prev) => [...prev, contract]);
+		toast({
+			title: 'Contract Added',
+			description: `${contract.friendlyName} has been added successfully.`,
+		});
+	};
+
+	const handleEditContract = (updatedContract: Contract) => {
 		setContracts((prev) =>
-			prev.filter((c) => c.contractId !== contract.contractId)
+			prev.map((c) => (c.id === updatedContract.id ? updatedContract : c))
 		);
+	};
+
+	const handleDeleteContract = (contract: Contract) => {
+		setContracts((prev) => prev.filter((c) => c.id !== contract.id));
+		toast({
+			title: 'Contract Deleted',
+			description: `${contract.friendlyName} has been deleted.`,
+			variant: 'destructive',
+		});
 	};
 
 	return (
@@ -80,6 +86,7 @@ export default function ContractsSettingsPage() {
 					</p>
 				</div>
 				<AddContractDialog
+					onAdd={handleAddContract}
 					trigger={
 						<Button size='sm'>
 							<Plus className='mr-2 h-4 w-4' />
@@ -133,9 +140,9 @@ export default function ContractsSettingsPage() {
 							</TableRow>
 						) : (
 							contracts.map((contract) => (
-								<TableRow key={contract.contractId}>
+								<TableRow key={contract.id}>
 									<TableCell className='font-medium'>
-										{contract.name}
+										{contract.friendlyName}
 									</TableCell>
 									<TableCell className='font-mono text-sm'>
 										{contract.contractId}
@@ -145,7 +152,10 @@ export default function ContractsSettingsPage() {
 											className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
 												contract.network === 'mainnet'
 													? 'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-500/20'
-													: 'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400 dark:ring-yellow-500/20'
+													: contract.network ===
+													  'testnet'
+													? 'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400 dark:ring-yellow-500/20'
+													: 'bg-purple-50 text-purple-700 ring-purple-600/20 dark:bg-purple-900/30 dark:text-purple-400 dark:ring-purple-500/20'
 											}`}
 										>
 											{contract.network}
@@ -193,16 +203,19 @@ export default function ContractsSettingsPage() {
 												<DropdownMenuLabel>
 													Actions
 												</DropdownMenuLabel>
-												<DropdownMenuItem
-													onClick={() =>
-														console.log(
-															'Edit',
-															contract
-														)
+												<EditContractDialog
+													contract={contract}
+													onSave={handleEditContract}
+													trigger={
+														<DropdownMenuItem
+															onSelect={(e) =>
+																e.preventDefault()
+															}
+														>
+															Edit Contract
+														</DropdownMenuItem>
 													}
-												>
-													Edit Contract
-												</DropdownMenuItem>
+												/>
 												<DropdownMenuSeparator />
 												<AlertDialog>
 													<AlertDialogTrigger asChild>
@@ -225,7 +238,7 @@ export default function ContractsSettingsPage() {
 																want to delete{' '}
 																<span className='font-medium'>
 																	{
-																		contract.name
+																		contract.friendlyName
 																	}
 																</span>
 																? This action

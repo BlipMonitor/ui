@@ -13,6 +13,12 @@ import {
 	DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { RuleForm } from './rule-form';
 import { useToast } from '@/hooks/use-toast';
 
@@ -52,20 +58,26 @@ export function AddRuleDialog() {
 			onOpenChange={setOpen}
 		>
 			<DialogTrigger asChild>
-				<Button size='sm'>
-					<Plus className='mr-2 h-4 w-4' />
-					Add Rule
-					<kbd className='pointer-events-none ml-2 hidden select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:inline-flex'>
-						<span className='text-xs'>⌘</span>K
-					</kbd>
-				</Button>
+				<TooltipProvider>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button size='sm'>
+								<Plus className='mr-2 h-4 w-4' />
+								Add Rule
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>
+							<p>Press ⌘K to open</p>
+						</TooltipContent>
+					</Tooltip>
+				</TooltipProvider>
 			</DialogTrigger>
 			<DialogContent className='sm:max-w-[500px]'>
 				<DialogHeader>
 					<DialogTitle>Create Alert Rule</DialogTitle>
 					<DialogDescription>
 						Set up a new alert rule with conditions and notification
-						preferences. Press ⌘⏎ to save or Esc to cancel.
+						preferences.
 					</DialogDescription>
 				</DialogHeader>
 				<RuleForm

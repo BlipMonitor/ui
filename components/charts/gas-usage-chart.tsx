@@ -119,7 +119,8 @@ export function GasUsageChart() {
 
 	// Get top calls by gas usage
 	const topCalls = React.useMemo(() => {
-		return mockData
+		const filtered = filterDataByTimeRange(mockData, timeRange);
+		return filtered
 			.sort((a, b) => (b.gasUsed || 0) - (a.gasUsed || 0))
 			.slice(0, 20)
 			.map((metric) => ({
@@ -132,7 +133,7 @@ export function GasUsageChart() {
 					6
 				)}...${metric.transactionHash.slice(-4)}`,
 			}));
-	}, [mockData]);
+	}, [mockData, timeRange]);
 
 	return (
 		<ChartCard
@@ -146,7 +147,7 @@ export function GasUsageChart() {
 					size='sm'
 					onClick={() => setShowTopCalls(true)}
 				>
-					View Top Calls by Gas
+					Top Calls
 				</Button>
 			}
 		>

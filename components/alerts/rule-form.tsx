@@ -103,8 +103,10 @@ export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
 	React.useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault(); // Prevent default to ensure the shortcut works
 				form.handleSubmit(onSubmit)();
 			} else if (e.key === 'Escape') {
+				e.preventDefault(); // Prevent default to ensure the shortcut works
 				onCancel();
 			}
 		};
@@ -370,18 +372,32 @@ export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
 				/>
 
 				<div className='flex justify-end space-x-4'>
-					<Button
-						variant='outline'
-						onClick={onCancel}
-					>
-						Cancel
-					</Button>
-					<Button type='submit'>
-						Save Rule
-						<kbd className='pointer-events-none ml-2 hidden select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:inline-flex'>
-							<span className='text-xs'>⌘</span>⏎
-						</kbd>
-					</Button>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant='outline'
+									onClick={onCancel}
+								>
+									Cancel
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Press Esc to cancel</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button type='submit'>Save Rule</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Press ⌘↵ to save</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
 				</div>
 			</form>
 		</Form>

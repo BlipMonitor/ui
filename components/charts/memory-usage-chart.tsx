@@ -119,7 +119,8 @@ export function MemoryUsageChart() {
 
 	// Get top calls by memory usage
 	const topCalls = React.useMemo(() => {
-		return mockData
+		const filtered = filterDataByTimeRange(mockData, timeRange);
+		return filtered
 			.sort((a, b) => (b.memoryUsage || 0) - (a.memoryUsage || 0))
 			.slice(0, 20)
 			.map((metric) => ({
@@ -132,7 +133,7 @@ export function MemoryUsageChart() {
 					6
 				)}...${metric.transactionHash.slice(-4)}`,
 			}));
-	}, [mockData]);
+	}, [mockData, timeRange]);
 
 	return (
 		<ChartCard
@@ -146,7 +147,7 @@ export function MemoryUsageChart() {
 					size='sm'
 					onClick={() => setShowTopCalls(true)}
 				>
-					View Top Calls by Memory
+					Top Calls
 				</Button>
 			}
 		>

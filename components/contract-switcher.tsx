@@ -174,6 +174,7 @@ export function ContractSwitcher() {
 						))}
 						<DropdownMenuSeparator />
 						<AddContractDialog
+							onAdd={() => {}}
 							trigger={
 								<DropdownMenuItem
 									className='gap-2 p-2'

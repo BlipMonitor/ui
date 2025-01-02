@@ -119,7 +119,8 @@ export function ResponseTimeChart() {
 
 	// Get top calls by execution time
 	const topCalls = React.useMemo(() => {
-		return mockData
+		const filtered = filterDataByTimeRange(mockData, timeRange);
+		return filtered
 			.sort((a, b) => (b.executionTime || 0) - (a.executionTime || 0))
 			.slice(0, 20)
 			.map((metric) => ({
@@ -132,7 +133,7 @@ export function ResponseTimeChart() {
 					6
 				)}...${metric.transactionHash.slice(-4)}`,
 			}));
-	}, [mockData]);
+	}, [mockData, timeRange]);
 
 	return (
 		<ChartCard
@@ -146,7 +147,7 @@ export function ResponseTimeChart() {
 					size='sm'
 					onClick={() => setShowTopCalls(true)}
 				>
-					View Top Calls by Time
+					Top Calls
 				</Button>
 			}
 		>

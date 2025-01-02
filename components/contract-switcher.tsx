@@ -20,7 +20,7 @@ import {
 	useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import { AddContractDialog } from '@/components/add-contract-dialog';
+import { AddContractDialog } from '@/components/contracts/add-contract-dialog';
 
 // Sample contract data - in real app, this would come from API/localStorage
 const sampleContracts = [

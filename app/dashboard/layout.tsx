@@ -31,6 +31,7 @@ const breadcrumbTitles: { [key: string]: string } = {
 	rules: 'Rules',
 	settings: 'Settings',
 	contracts: 'Contracts',
+	notifications: 'Notifications',
 	account: 'Account',
 	general: 'General',
 };

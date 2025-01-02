@@ -58,10 +58,17 @@ const sampleContracts = [
 
 interface RuleFormProps {
 	onSubmit: (data: AlertRule) => void;
-	onCancel: () => void;
+	onCancel?: () => void;
+	defaultValues?: AlertRule;
+	submitText?: string;
 }
 
-export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
+export function RuleForm({
+	onSubmit,
+	onCancel,
+	defaultValues,
+	submitText = 'Create Rule',
+}: RuleFormProps) {
 	// Get the currently selected contract from localStorage
 	const storedContract = React.useMemo(() => {
 		if (typeof window !== 'undefined') {
@@ -75,7 +82,7 @@ export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
 
 	const form = useForm<AlertRule>({
 		resolver: zodResolver(alertRuleSchema),
-		defaultValues: {
+		defaultValues: defaultValues || {
 			name: '', // Only field without a default
 			contractId:
 				storedContract?.contractId || sampleContracts[0].contractId,
@@ -106,7 +113,7 @@ export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
 			if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
 				e.preventDefault(); // Prevent default to ensure the shortcut works
 				form.handleSubmit(onSubmit)();
-			} else if (e.key === 'Escape') {
+			} else if (e.key === 'Escape' && onCancel) {
 				e.preventDefault(); // Prevent default to ensure the shortcut works
 				onCancel();
 			}
@@ -427,33 +434,17 @@ export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
 					}}
 				/>
 
-				<div className='flex justify-end space-x-4'>
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									variant='outline'
-									onClick={onCancel}
-								>
-									Cancel
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Press Esc to cancel</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
-
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button type='submit'>Save Rule</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Press ⌘↵ to save</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
+				<div className='flex justify-end gap-3'>
+					{onCancel && (
+						<Button
+							type='button'
+							variant='outline'
+							onClick={onCancel}
+						>
+							Cancel
+						</Button>
+					)}
+					<Button type='submit'>{submitText}</Button>
 				</div>
 			</form>
 		</Form>

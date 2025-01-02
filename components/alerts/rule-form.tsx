@@ -34,7 +34,8 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, MessageSquare, Mail } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Using the same sample contracts from contract-switcher for now
 const sampleContracts = [
@@ -348,27 +349,82 @@ export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
 				<FormField
 					control={form.control}
 					name='notificationChannel'
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Notification Channel</FormLabel>
-							<Select
-								onValueChange={field.onChange}
-								defaultValue={field.value}
-							>
+					render={({ field }) => {
+						// Convert single value to array for multi-select
+						const selectedValues =
+							field.value === 'both'
+								? ['slack', 'email']
+								: [field.value];
+
+						const handleSelect = (value: string) => {
+							const isSelected = selectedValues.includes(value);
+							let newValues: string[];
+
+							if (isSelected) {
+								// Don't allow deselecting if it's the last selected option
+								if (selectedValues.length === 1) return;
+								newValues = selectedValues.filter(
+									(v) => v !== value
+								);
+							} else {
+								newValues = [...selectedValues, value];
+							}
+
+							// Convert back to single value format
+							field.onChange(
+								newValues.length === 2
+									? 'both'
+									: newValues[0] || 'email'
+							);
+						};
+
+						return (
+							<FormItem>
+								<FormLabel>Notification Channels</FormLabel>
 								<FormControl>
-									<SelectTrigger>
-										<SelectValue placeholder='Select notification channel' />
-									</SelectTrigger>
+									<div className='flex items-center gap-4'>
+										<div className='flex items-center space-x-2'>
+											<Checkbox
+												id='notification-email'
+												checked={selectedValues.includes(
+													'email'
+												)}
+												onCheckedChange={() =>
+													handleSelect('email')
+												}
+											/>
+											<label
+												htmlFor='notification-email'
+												className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1.5 cursor-pointer'
+											>
+												<Mail className='h-4 w-4' />
+												Email
+											</label>
+										</div>
+										<div className='flex items-center space-x-2'>
+											<Checkbox
+												id='notification-slack'
+												checked={selectedValues.includes(
+													'slack'
+												)}
+												onCheckedChange={() =>
+													handleSelect('slack')
+												}
+											/>
+											<label
+												htmlFor='notification-slack'
+												className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1.5 cursor-pointer'
+											>
+												<MessageSquare className='h-4 w-4' />
+												Slack
+											</label>
+										</div>
+									</div>
 								</FormControl>
-								<SelectContent>
-									<SelectItem value='slack'>Slack</SelectItem>
-									<SelectItem value='email'>Email</SelectItem>
-									<SelectItem value='both'>Both</SelectItem>
-								</SelectContent>
-							</Select>
-							<FormMessage />
-						</FormItem>
-					)}
+								<FormMessage />
+							</FormItem>
+						);
+					}}
 				/>
 
 				<div className='flex justify-end space-x-4'>

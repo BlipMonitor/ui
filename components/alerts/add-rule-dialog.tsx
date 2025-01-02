@@ -22,7 +22,11 @@ import {
 import { RuleForm } from './rule-form';
 import { useToast } from '@/hooks/use-toast';
 
-export function AddRuleDialog() {
+interface AddRuleDialogProps {
+	onRuleAdd?: (rule: AlertRule) => void;
+}
+
+export function AddRuleDialog({ onRuleAdd }: AddRuleDialogProps) {
 	const [open, setOpen] = React.useState(false);
 	const { toast } = useToast();
 
@@ -43,6 +47,9 @@ export function AddRuleDialog() {
 	const handleSubmit = (data: AlertRule) => {
 		// TODO: Add API call to save rule
 		console.log('Saving rule:', data);
+
+		// Call the onRuleAdd callback if provided
+		onRuleAdd?.(data);
 
 		toast({
 			title: 'Alert Rule Created',
@@ -71,24 +78,21 @@ export function AddRuleDialog() {
 			open={open}
 			onOpenChange={setOpen}
 		>
-			<DialogTrigger asChild>
-				<TooltipProvider>
-					<Tooltip>
+			<TooltipProvider>
+				<Tooltip>
+					<DialogTrigger asChild>
 						<TooltipTrigger asChild>
-							<Button
-								size='sm'
-								onClick={() => setOpen(true)}
-							>
+							<Button size='sm'>
 								<Plus className='mr-2 h-4 w-4' />
 								Add Rule
 							</Button>
 						</TooltipTrigger>
-						<TooltipContent>
-							<p>Press ⌘K to open</p>
-						</TooltipContent>
-					</Tooltip>
-				</TooltipProvider>
-			</DialogTrigger>
+					</DialogTrigger>
+					<TooltipContent>
+						<p>Press ⌘K to open</p>
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
 			<DialogContent className='sm:max-w-[500px]'>
 				<DialogHeader>
 					<DialogTitle>Create Alert Rule</DialogTitle>

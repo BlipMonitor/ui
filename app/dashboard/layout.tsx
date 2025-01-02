@@ -27,6 +27,8 @@ const breadcrumbTitles: { [key: string]: string } = {
 	performance: 'Performance',
 	metrics: 'Metrics',
 	alerts: 'Alerts',
+	feed: 'Alert Feed',
+	rules: 'Rules',
 	settings: 'Settings',
 	contracts: 'Contracts',
 	account: 'Account',

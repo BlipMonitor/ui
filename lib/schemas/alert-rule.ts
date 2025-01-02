@@ -55,9 +55,11 @@ export const alertRuleSchema = z
 		timeUnit: z.enum(['minutes', 'hours', 'days'], {
 			required_error: 'Please select a time unit',
 		}),
-		notificationChannel: z.enum(['slack', 'email', 'both'], {
-			required_error: 'Please select a notification channel',
-		}),
+		notificationChannel: z
+			.enum(['slack', 'email', 'both'], {
+				required_error: 'Please select a notification channel',
+			})
+			.default('email'),
 		isActive: z.boolean().default(true),
 	})
 	.and(conditionSchema);

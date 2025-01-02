@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronRight, type LucideIcon } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 import {
@@ -34,6 +34,7 @@ export function NavMain({
 	}[];
 }) {
 	const pathname = usePathname();
+	const router = useRouter();
 
 	return (
 		<SidebarGroup>
@@ -52,7 +53,13 @@ export function NavMain({
 							>
 								<SidebarMenuItem>
 									<CollapsibleTrigger asChild>
-										<SidebarMenuButton tooltip={item.title}>
+										<SidebarMenuButton
+											tooltip={item.title}
+											onClick={() => {
+												// Navigate to the first subitem's URL
+												router.push(item.items![0].url);
+											}}
+										>
 											{item.icon && <item.icon />}
 											<span>{item.title}</span>
 											<ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
@@ -62,9 +69,13 @@ export function NavMain({
 										<SidebarMenuSub>
 											{item.items.map((subItem) => {
 												const isSubActive =
-													pathname.startsWith(
-														subItem.url
-													);
+													subItem.url ===
+													'/dashboard/alerts'
+														? pathname ===
+														  subItem.url
+														: pathname.startsWith(
+																subItem.url
+														  );
 												return (
 													<SidebarMenuSubItem
 														key={subItem.title}

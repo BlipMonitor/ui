@@ -57,6 +57,20 @@ const data = {
 			icon: Bell,
 			shortcut: '⌘⇧C',
 			hotkey: 'mod+shift+c',
+			items: [
+				{
+					title: 'Overview',
+					url: '/dashboard/alerts',
+				},
+				{
+					title: 'Alert Feed',
+					url: '/dashboard/alerts/feed',
+				},
+				{
+					title: 'Rules',
+					url: '/dashboard/alerts/rules',
+				},
+			],
 		},
 		{
 			title: 'Settings',

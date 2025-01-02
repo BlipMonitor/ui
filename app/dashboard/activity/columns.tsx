@@ -7,17 +7,17 @@ import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // This type is used to define the shape of our data.
-export type ActivityEvent = {
+export interface ActivityEvent {
 	id: string;
 	timestamp: Date;
 	function: string;
-	outcome: 'success' | 'failure';
+	status: 'success' | 'failure' | 'pending';
 	gasUsed: string;
 	executionTime: string;
 	transactionId: string;
 	blockNumber: string;
 	errorMessage?: string;
-};
+}
 
 export const columns: ColumnDef<ActivityEvent>[] = [
 	{
@@ -70,7 +70,7 @@ export const columns: ColumnDef<ActivityEvent>[] = [
 		},
 	},
 	{
-		accessorKey: 'outcome',
+		accessorKey: 'status',
 		header: ({ column }) => {
 			return (
 				<Button
@@ -80,7 +80,7 @@ export const columns: ColumnDef<ActivityEvent>[] = [
 					}
 					className='px-0 hover:bg-transparent'
 				>
-					Outcome
+					Status
 					{column.getIsSorted() === 'asc' ? (
 						<ArrowUp className='ml-2 h-4 w-4' />
 					) : column.getIsSorted() === 'desc' ? (
@@ -92,17 +92,22 @@ export const columns: ColumnDef<ActivityEvent>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const outcome = row.getValue('outcome') as string;
+			const status = row.getValue('status') as string;
 			return (
 				<span
 					className={cn(
 						'inline-flex items-center rounded-full px-2 py-1 text-xs font-medium',
-						outcome === 'success'
-							? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-							: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+						{
+							'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400':
+								status === 'success',
+							'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400':
+								status === 'failure',
+							'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400':
+								status === 'pending',
+						}
 					)}
 				>
-					{outcome}
+					{status}
 				</span>
 			);
 		},

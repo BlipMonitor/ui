@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { TrendingUp } from 'lucide-react';
-import { subDays } from 'date-fns';
 
 import {
 	ChartConfig,
@@ -23,6 +22,7 @@ import {
 } from './chart-utils';
 import { Button } from '@/components/ui/button';
 import { TopCallsDialog } from '@/components/performance/top-calls-dialog';
+import { generateMockEvents, type ContractEvent } from '@/lib/mock/events';
 
 interface ContractCall {
 	id: string;
@@ -32,16 +32,6 @@ interface ContractCall {
 	transactionId: string;
 	success: boolean;
 }
-
-// Sample data - we'll replace this with real contract calls data later
-const sampleData: ContractCall[] = Array.from({ length: 30 }, (_, i) => ({
-	id: `call-${i}`,
-	timestamp: subDays(new Date(), i).toISOString(),
-	functionName: `transfer${i % 2 === 0 ? 'From' : 'To'}`,
-	gasUsed: Math.floor(Math.random() * 5000000) + 1000000,
-	transactionId: `0x${Math.random().toString(16).slice(2)}`,
-	success: Math.random() > 0.1,
-}));
 
 const chartConfig = {
 	total: {
@@ -58,23 +48,42 @@ const chartConfig = {
 	},
 } satisfies ChartConfig;
 
+// Convert ContractEvent to ContractCall
+function convertToContractCall(event: ContractEvent): ContractCall {
+	return {
+		id: event.id,
+		timestamp: event.timestamp.toISOString(),
+		functionName: event.functionName || event.type,
+		gasUsed: event.gasUsed || 0,
+		transactionId: event.transactionHash,
+		success: event.status === 'success',
+	};
+}
+
 export function ContractCallsChart() {
 	const [timeRange, setTimeRange] = React.useState<TimeRange>('7d');
 	const [showTopCalls, setShowTopCalls] = React.useState(false);
 
+	// Generate mock data
+	const mockData = React.useMemo(() => {
+		const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 1;
+		const count = days * 24; // 24 events per day for realistic data
+		return generateMockEvents(count).map(convertToContractCall);
+	}, [timeRange]);
+
 	// Group data by date and calculate totals
 	const chartData = React.useMemo(() => {
-		const filtered = filterDataByTimeRange(sampleData, timeRange);
+		const filtered = filterDataByTimeRange(mockData, timeRange);
 		return groupDataByDate(filtered, (calls) => ({
 			total: calls.length,
 			success: calls.filter((call) => call.success).length,
 			failed: calls.filter((call) => !call.success).length,
 		}));
-	}, [timeRange]);
+	}, [mockData, timeRange]);
 
 	// Get top calls by gas usage
 	const topCalls = React.useMemo(() => {
-		return sampleData
+		return mockData
 			.sort((a, b) => b.gasUsed - a.gasUsed)
 			.slice(0, 20)
 			.map((call) => ({
@@ -84,7 +93,7 @@ export function ContractCallsChart() {
 				value: call.gasUsed,
 				transactionId: call.transactionId,
 			}));
-	}, []);
+	}, [mockData]);
 
 	const totalCalls = chartData.reduce((acc, curr) => acc + curr.total, 0);
 	const averageCalls = Math.round(totalCalls / chartData.length);

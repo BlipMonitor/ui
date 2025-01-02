@@ -22,6 +22,7 @@
 		"@radix-ui/react-separator": "^1.1.1",
 		"@radix-ui/react-slot": "^1.1.1",
 		"@radix-ui/react-tabs": "^1.1.2",
+		"@radix-ui/react-toast": "^1.2.4",
 		"@radix-ui/react-toggle": "^1.1.1",
 		"@radix-ui/react-toggle-group": "^1.1.1",
 		"@radix-ui/react-tooltip": "^1.1.6",
@@ -44,6 +45,7 @@
 		"zod": "^3.24.1"
 	},
 	"devDependencies": {
+		"@faker-js/faker": "^9.3.0",
 		"@types/node": "^20",
 		"@types/react": "^18",
 		"@types/react-dom": "^18",

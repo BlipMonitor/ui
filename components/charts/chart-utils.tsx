@@ -16,7 +16,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 
 export type TimeRange = '7d' | '30d' | '90d';
 
@@ -26,6 +26,9 @@ export const timeRangeOptions = [
 	{ value: '30d' as const, label: 'Last 30 days', days: 30 },
 	{ value: '7d' as const, label: 'Last 7 days', days: 7 },
 ] as const;
+
+// Add this for testing empty states
+const TEST_MODE = true;
 
 // Hook for time range selection
 export function useTimeRange() {
@@ -161,11 +164,16 @@ export function filterDataByTimeRange<T extends { timestamp: string }>(
 	data: T[],
 	timeRange: TimeRange
 ): T[] {
+	// For testing empty states
+	if (TEST_MODE && timeRange === '30d') {
+		return [];
+	}
+
 	const now = new Date();
-	const days =
-		timeRangeOptions.find((opt) => opt.value === timeRange)?.days || 7;
-	const cutoff = subDays(now, days);
-	return data.filter((item) => new Date(item.timestamp) >= cutoff);
+	const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+	const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+	return data.filter((item) => new Date(item.timestamp) >= startDate);
 }
 
 export function groupDataByDate<T extends { timestamp: string }, R>(

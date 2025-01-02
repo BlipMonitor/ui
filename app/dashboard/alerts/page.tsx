@@ -5,11 +5,14 @@ import { useState, useEffect } from 'react';
 import { AlertActivityChart } from '@/components/charts/alert-activity-chart';
 import { RecentAlertsCard } from '@/components/alerts/recent-alerts-card';
 import { AlertMetrics } from '@/components/alerts/alert-metrics';
+import { AlertDetailSheet } from '@/components/alerts/alert-detail-sheet';
 
 export default function AlertsPage() {
 	const [mockAlerts, setMockAlerts] = useState<Alert[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [timeRange, setTimeRange] = useState('7d');
+	const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+	const [isDetailOpen, setIsDetailOpen] = useState(false);
 
 	useEffect(() => {
 		// Generate mock data only on client side
@@ -28,6 +31,37 @@ export default function AlertsPage() {
 	const recentAlerts = [...mockAlerts]
 		.sort((a, b) => b.triggeredAt.getTime() - a.triggeredAt.getTime())
 		.slice(0, 5);
+
+	const handleAlertClick = (alert: Alert) => {
+		setSelectedAlert(alert);
+		setIsDetailOpen(true);
+	};
+
+	const handleAcknowledge = (alertId: string) => {
+		setMockAlerts((prev) =>
+			prev.map((alert) =>
+				alert.id === alertId
+					? { ...alert, status: 'resolved' as const }
+					: alert
+			)
+		);
+		setIsDetailOpen(false);
+	};
+
+	const handleResolve = (alertId: string) => {
+		setMockAlerts((prev) =>
+			prev.map((alert) =>
+				alert.id === alertId
+					? {
+							...alert,
+							status: 'resolved' as const,
+							resolvedAt: new Date(),
+					  }
+					: alert
+			)
+		);
+		setIsDetailOpen(false);
+	};
 
 	if (isLoading) {
 		return (
@@ -64,9 +98,20 @@ export default function AlertsPage() {
 						timeRange={timeRange}
 						onTimeRangeChange={setTimeRange}
 					/>
-					<RecentAlertsCard alerts={recentAlerts} />
+					<RecentAlertsCard
+						alerts={recentAlerts}
+						onAlertClick={handleAlertClick}
+					/>
 				</div>
 			</div>
+
+			<AlertDetailSheet
+				alert={selectedAlert}
+				open={isDetailOpen}
+				onOpenChange={setIsDetailOpen}
+				onAcknowledge={handleAcknowledge}
+				onResolve={handleResolve}
+			/>
 		</div>
 	);
 }

@@ -21,7 +21,7 @@ interface EventDetailsDrawerProps {
 		id: string;
 		timestamp: Date;
 		function: string;
-		outcome: 'success' | 'failure';
+		status: 'success' | 'failure' | 'pending';
 		gasUsed: string;
 		executionTime: string;
 		transactionId?: string;
@@ -93,17 +93,17 @@ export function EventDetailsDrawer({
 								</span>
 								<Badge
 									variant={
-										event.outcome === 'success'
+										event.status === 'success'
 											? 'default'
 											: 'destructive'
 									}
 									className={cn(
 										'capitalize w-fit',
-										event.outcome === 'success' &&
+										event.status === 'success' &&
 											'bg-green-500 text-white hover:bg-green-500/80 dark:bg-green-900 dark:hover:bg-green-900/80'
 									)}
 								>
-									{event.outcome}
+									{event.status}
 								</Badge>
 							</div>
 						</div>
@@ -181,10 +181,10 @@ export function EventDetailsDrawer({
 					</div>
 
 					{/* Error Details (if any) */}
-					{event.outcome === 'failure' && event.errorMessage && (
+					{event.status === 'failure' && event.errorMessage && (
 						<div className='space-y-2'>
 							<h3 className='text-sm font-medium text-muted-foreground'>
-								Error Details
+								rror Details
 							</h3>
 							<div className='rounded-lg border border-destructive/20 bg-destructive/10 p-4'>
 								<pre className='whitespace-pre-wrap text-sm text-destructive break-all'>

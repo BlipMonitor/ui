@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, CheckCircle2 } from 'lucide-react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { AlertRule } from '@/lib/schemas/alert-rule';
 import {
@@ -46,7 +46,21 @@ export function AddRuleDialog() {
 
 		toast({
 			title: 'Alert Rule Created',
-			description: `Successfully created rule: ${data.name}`,
+			description: (
+				<div className='flex flex-col gap-2'>
+					<div className='flex items-center gap-2'>
+						<CheckCircle2 className='h-4 w-4 text-green-500' />
+						<p>
+							Successfully created rule:{' '}
+							<span className='font-medium'>{data.name}</span>
+						</p>
+					</div>
+					<p className='text-xs text-muted-foreground'>
+						You will be notified when the conditions are met.
+					</p>
+				</div>
+			),
+			duration: 5000,
 		});
 
 		setOpen(false);

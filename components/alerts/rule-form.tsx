@@ -3,7 +3,13 @@
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertRule, alertRuleSchema } from '@/lib/schemas/alert-rule';
+import {
+	AlertRule,
+	alertRuleSchema,
+	conditionDescriptions,
+	thresholdUnits,
+	defaultThresholds,
+} from '@/lib/schemas/alert-rule';
 import { Button } from '@/components/ui/button';
 import {
 	Form,
@@ -22,6 +28,13 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 // Using the same sample contracts from contract-switcher for now
 const sampleContracts = [
@@ -64,15 +77,45 @@ export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
 		defaultValues: {
 			name: '', // Only field without a default
 			contractId:
-				storedContract?.contractId || sampleContracts[0].contractId, // Use active contract or first contract as default
+				storedContract?.contractId || sampleContracts[0].contractId,
 			conditionType: 'failure_threshold',
-			threshold: 3, // Default: 3 failures
-			timeWindow: 1, // Default: 1 hour window
+			threshold: defaultThresholds.failure_threshold,
+			timeWindow: 1,
 			timeUnit: 'hours',
 			notificationChannel: 'email',
 			isActive: true,
 		},
 	});
+
+	// Update threshold when condition type changes
+	React.useEffect(() => {
+		const subscription = form.watch((value, { name }) => {
+			if (name === 'conditionType') {
+				const type =
+					value.conditionType as keyof typeof defaultThresholds;
+				form.setValue('threshold', defaultThresholds[type]);
+			}
+		});
+		return () => subscription.unsubscribe();
+	}, [form]);
+
+	// Handle keyboard shortcuts
+	React.useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+				form.handleSubmit(onSubmit)();
+			} else if (e.key === 'Escape') {
+				onCancel();
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, [form, onSubmit, onCancel]);
+
+	const selectedConditionType = form.watch(
+		'conditionType'
+	) as keyof typeof thresholdUnits;
 
 	return (
 		<Form {...form}>
@@ -142,7 +185,25 @@ export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
 					name='conditionType'
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Condition Type</FormLabel>
+							<div className='flex items-center gap-2'>
+								<FormLabel>Condition Type</FormLabel>
+								<TooltipProvider>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<HelpCircle className='h-4 w-4 text-muted-foreground' />
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>
+												{
+													conditionDescriptions[
+														field.value as keyof typeof conditionDescriptions
+													]
+												}
+											</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+							</div>
 							<Select
 								onValueChange={field.onChange}
 								defaultValue={field.value}
@@ -174,13 +235,32 @@ export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
 					name='threshold'
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Threshold Value</FormLabel>
+							<FormLabel>
+								Threshold Value (
+								{thresholdUnits[selectedConditionType]})
+							</FormLabel>
 							<FormControl>
 								<Input
 									type='number'
-									min={1}
-									max={1000}
-									placeholder='Enter threshold value'
+									min={
+										selectedConditionType ===
+										'failure_threshold'
+											? 1
+											: selectedConditionType ===
+											  'gas_spike'
+											? 10
+											: 100
+									}
+									max={
+										selectedConditionType ===
+										'failure_threshold'
+											? 100
+											: selectedConditionType ===
+											  'gas_spike'
+											? 1000
+											: 30000
+									}
+									placeholder={`Enter threshold in ${thresholdUnits[selectedConditionType]}`}
 									{...field}
 									onChange={(e) =>
 										field.onChange(Number(e.target.value))
@@ -188,7 +268,13 @@ export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
 								/>
 							</FormControl>
 							<FormDescription>
-								Enter a whole number between 1 and 1000
+								{selectedConditionType ===
+									'failure_threshold' &&
+									'Number of failures to trigger the alert'}
+								{selectedConditionType === 'gas_spike' &&
+									'Percentage increase in gas usage above normal'}
+								{selectedConditionType === 'execution_time' &&
+									'Maximum execution time in milliseconds'}
 							</FormDescription>
 							<FormMessage />
 						</FormItem>
@@ -290,7 +376,12 @@ export function RuleForm({ onSubmit, onCancel }: RuleFormProps) {
 					>
 						Cancel
 					</Button>
-					<Button type='submit'>Save Rule</Button>
+					<Button type='submit'>
+						Save Rule
+						<kbd className='pointer-events-none ml-2 hidden select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:inline-flex'>
+							<span className='text-xs'>⌘</span>⏎
+						</kbd>
+					</Button>
 				</div>
 			</form>
 		</Form>

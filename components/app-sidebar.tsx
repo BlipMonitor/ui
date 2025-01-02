@@ -80,8 +80,8 @@ const data = {
 			hotkey: 'mod+shift+s',
 			items: [
 				{
-					title: 'General',
-					url: '/dashboard/settings/general',
+					title: 'Account',
+					url: '/dashboard/settings/account',
 				},
 				{
 					title: 'Contracts',
@@ -90,10 +90,6 @@ const data = {
 				{
 					title: 'Notifications',
 					url: '/dashboard/settings/notifications',
-				},
-				{
-					title: 'Account',
-					url: '/dashboard/settings/account',
 				},
 			],
 		},

@@ -30,9 +30,38 @@ export function EditRuleDialog({
 		try {
 			onRuleEdit(rule.id, data);
 			onOpenChange(false);
+
+			// Create a list of changes with title case
+			const changes: string[] = [];
+			if (rule.name !== data.name) changes.push('Name');
+			if (rule.conditionType !== data.conditionType)
+				changes.push('Condition Type');
+			if (rule.threshold !== data.threshold) changes.push('Threshold');
+			if (
+				rule.timeWindow !== data.timeWindow ||
+				rule.timeUnit !== data.timeUnit
+			)
+				changes.push('Time Window');
+			if (rule.notificationChannel !== data.notificationChannel)
+				changes.push('Notification Channel');
+
 			toast({
-				title: 'Rule updated',
-				description: 'The alert rule has been updated successfully.',
+				title: 'Rule Updated',
+				description: (
+					<div className='flex flex-col gap-1'>
+						<p>
+							<span className='font-medium'>
+								&ldquo;{data.name}&rdquo;
+							</span>{' '}
+							has been updated.
+						</p>
+						{changes.length > 0 && (
+							<p className='text-sm text-muted-foreground'>
+								Changed: {changes.join(', ')}
+							</p>
+						)}
+					</div>
+				),
 			});
 		} catch (error: unknown) {
 			console.error('Failed to update rule:', error);

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import {
 	Table,
 	TableBody,
@@ -36,10 +36,24 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { type Contract } from '@/lib/schemas/contract';
 import { generateMockContracts } from '@/lib/mock/contracts';
+import { Input } from '@/components/ui/input';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
 
 export default function ContractsSettingsPage() {
 	const [contracts, setContracts] = React.useState<Contract[]>([]);
 	const [isLoading, setIsLoading] = React.useState(true);
+	const [search, setSearch] = React.useState('');
+	const [networkFilter, setNetworkFilter] = React.useState<string>('all');
+	const [sortConfig, setSortConfig] = React.useState<{
+		key: keyof Contract;
+		direction: 'asc' | 'desc';
+	}>({ key: 'friendlyName', direction: 'asc' });
 	const { toast } = useToast();
 
 	React.useEffect(() => {
@@ -74,6 +88,45 @@ export default function ContractsSettingsPage() {
 		});
 	};
 
+	// Filter and sort contracts
+	const filteredContracts = React.useMemo(() => {
+		return contracts
+			.filter((contract) => {
+				const matchesSearch =
+					search === '' ||
+					contract.friendlyName
+						.toLowerCase()
+						.includes(search.toLowerCase()) ||
+					contract.contractId
+						.toLowerCase()
+						.includes(search.toLowerCase());
+				const matchesNetwork =
+					networkFilter === 'all' ||
+					contract.network === networkFilter;
+				return matchesSearch && matchesNetwork;
+			})
+			.sort((a, b) => {
+				const aValue = a[sortConfig.key];
+				const bValue = b[sortConfig.key];
+				const direction = sortConfig.direction === 'asc' ? 1 : -1;
+
+				if (typeof aValue === 'string' && typeof bValue === 'string') {
+					return aValue.localeCompare(bValue) * direction;
+				}
+				return 0;
+			});
+	}, [contracts, search, networkFilter, sortConfig]);
+
+	const handleSort = (key: keyof Contract) => {
+		setSortConfig((current) => ({
+			key,
+			direction:
+				current.key === key && current.direction === 'asc'
+					? 'desc'
+					: 'asc',
+		}));
+	};
+
 	return (
 		<div className='space-y-3'>
 			<div className='flex items-center justify-between'>
@@ -96,13 +149,74 @@ export default function ContractsSettingsPage() {
 				/>
 			</div>
 
+			<div className='flex items-center gap-3'>
+				<div className='relative flex-1'>
+					<Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
+					<Input
+						placeholder='Search by name or contract ID...'
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+						className='pl-8'
+					/>
+				</div>
+				<Select
+					value={networkFilter}
+					onValueChange={setNetworkFilter}
+				>
+					<SelectTrigger className='w-[140px]'>
+						<SelectValue placeholder='Select network' />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value='all'>All Networks</SelectItem>
+						<SelectItem value='mainnet'>Mainnet</SelectItem>
+						<SelectItem value='testnet'>Testnet</SelectItem>
+					</SelectContent>
+				</Select>
+			</div>
+
 			<div className='rounded-md border'>
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead className='w-[200px]'>Name</TableHead>
-							<TableHead>Contract ID</TableHead>
-							<TableHead className='w-[100px]'>Network</TableHead>
+							<TableHead
+								className='w-[200px] cursor-pointer'
+								onClick={() => handleSort('friendlyName')}
+							>
+								Name{' '}
+								{sortConfig.key === 'friendlyName' && (
+									<span className='ml-1'>
+										{sortConfig.direction === 'asc'
+											? '↑'
+											: '↓'}
+									</span>
+								)}
+							</TableHead>
+							<TableHead
+								className='cursor-pointer'
+								onClick={() => handleSort('contractId')}
+							>
+								Contract ID{' '}
+								{sortConfig.key === 'contractId' && (
+									<span className='ml-1'>
+										{sortConfig.direction === 'asc'
+											? '↑'
+											: '↓'}
+									</span>
+								)}
+							</TableHead>
+							<TableHead
+								className='w-[100px] cursor-pointer'
+								onClick={() => handleSort('network')}
+							>
+								Network{' '}
+								{sortConfig.key === 'network' && (
+									<span className='ml-1'>
+										{sortConfig.direction === 'asc'
+											? '↑'
+											: '↓'}
+									</span>
+								)}
+							</TableHead>
 							<TableHead className='w-[100px] text-right'>
 								Actions
 							</TableHead>
@@ -126,20 +240,21 @@ export default function ContractsSettingsPage() {
 									</TableCell>
 								</TableRow>
 							))
-						) : contracts.length === 0 ? (
+						) : filteredContracts.length === 0 ? (
 							<TableRow>
 								<TableCell
 									colSpan={4}
 									className='h-[72px] text-center'
 								>
 									<p className='text-sm text-muted-foreground'>
-										No contracts added yet. Add your first
-										contract to get started.
+										{contracts.length === 0
+											? 'No contracts added yet. Add your first contract to get started.'
+											: 'No contracts match your search criteria.'}
 									</p>
 								</TableCell>
 							</TableRow>
 						) : (
-							contracts.map((contract) => (
+							filteredContracts.map((contract) => (
 								<TableRow key={contract.id}>
 									<TableCell className='font-medium'>
 										{contract.friendlyName}

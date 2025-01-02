@@ -2,7 +2,7 @@
 
 import { AlertRule } from '@/lib/schemas/alert-rule';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, Mail, MessageSquare } from 'lucide-react';
+import { ArrowUpDown, Mail, MessageSquare, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -194,15 +194,45 @@ export const columns: ColumnDef<RuleWithId>[] = [
 			)?.handleRuleToggle;
 
 			return (
-				<Switch
-					checked={isActive}
-					onCheckedChange={(checked: boolean) => {
-						if (handleRuleToggle) {
-							handleRuleToggle(row.original.id, checked);
-						}
-					}}
-					aria-label='Toggle rule status'
-				/>
+				<div onClick={(e) => e.stopPropagation()}>
+					<Switch
+						checked={isActive}
+						onCheckedChange={(checked: boolean) => {
+							if (handleRuleToggle) {
+								handleRuleToggle(row.original.id, checked);
+							}
+						}}
+						aria-label='Toggle rule status'
+					/>
+				</div>
+			);
+		},
+	},
+	{
+		id: 'actions',
+		cell: ({ row, table }) => {
+			const handleRuleEdit = (
+				table.options.meta as {
+					handleRuleEdit?: (ruleId: string) => void;
+				}
+			)?.handleRuleEdit;
+
+			return (
+				<div onClick={(e) => e.stopPropagation()}>
+					<Button
+						variant='ghost'
+						size='icon'
+						onClick={() => {
+							if (handleRuleEdit) {
+								handleRuleEdit(row.original.id);
+							}
+						}}
+						className='h-8 w-8'
+						aria-label='Edit rule'
+					>
+						<Pencil className='h-4 w-4' />
+					</Button>
+				</div>
 			);
 		},
 	},

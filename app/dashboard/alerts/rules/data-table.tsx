@@ -22,15 +22,15 @@ import {
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
-	onRowClick?: (data: TData) => void;
 	onRuleToggle?: (ruleId: string, checked: boolean) => void;
+	onRuleEdit?: (ruleId: string) => void;
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
-	onRowClick,
 	onRuleToggle,
+	onRuleEdit,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 
@@ -45,6 +45,7 @@ export function DataTable<TData, TValue>({
 		},
 		meta: {
 			handleRuleToggle: onRuleToggle,
+			handleRuleEdit: onRuleEdit,
 		},
 	});
 
@@ -76,8 +77,6 @@ export function DataTable<TData, TValue>({
 							<TableRow
 								key={row.id}
 								data-state={row.getIsSelected() && 'selected'}
-								className={onRowClick ? 'cursor-pointer' : ''}
-								onClick={() => onRowClick?.(row.original)}
 							>
 								{row.getVisibleCells().map((cell) => (
 									<TableCell key={cell.id}>

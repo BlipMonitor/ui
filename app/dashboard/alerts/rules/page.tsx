@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AddRuleDialog } from '@/components/alerts/add-rule-dialog';
+import { EditRuleDialog } from '@/components/alerts/edit-rule-dialog';
 import { columns } from './columns';
 import { DataTable } from './data-table';
 import { generateMockRules } from '@/lib/mock/alert-rules';
@@ -16,55 +17,53 @@ type RuleWithId = AlertRule & { id: string };
 export default function AlertRulesPage() {
 	const router = useRouter();
 	const [rules, setRules] = useState<RuleWithId[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
+	const [loading, setLoading] = useState(true);
+	const [selectedRule, setSelectedRule] = useState<RuleWithId | null>(null);
+	const [editDialogOpen, setEditDialogOpen] = useState(false);
 
 	useEffect(() => {
-		// Simulate API call delay
-		const timer = setTimeout(() => {
+		// Simulate API call to fetch rules
+		setTimeout(() => {
 			setRules(generateMockRules());
-			setIsLoading(false);
+			setLoading(false);
 		}, 1000);
-
-		return () => clearTimeout(timer);
 	}, []);
 
-	const handleRuleClick = (rule: RuleWithId) => {
-		// We'll implement the drawer in Issue #38
-		console.log('Rule clicked:', rule);
+	const handleRuleAdd = (rule: AlertRule) => {
+		const newRule = {
+			...rule,
+			id: Math.random().toString(36).substring(7),
+		};
+		setRules((prev) => [...prev, newRule]);
+	};
+
+	const handleRuleEdit = (ruleId: string, updatedRule: AlertRule) => {
+		setRules((prev) =>
+			prev.map((rule) =>
+				rule.id === ruleId ? { ...updatedRule, id: rule.id } : rule
+			)
+		);
 	};
 
 	const handleRuleToggle = (ruleId: string, checked: boolean) => {
-		setRules((prevRules) =>
-			prevRules.map((rule) =>
+		setRules((prev) =>
+			prev.map((rule) =>
 				rule.id === ruleId ? { ...rule, isActive: checked } : rule
 			)
 		);
 	};
 
-	const handleRuleAdd = (rule: AlertRule) => {
-		// Generate a temporary ID for the new rule
-		const newRule: RuleWithId = {
-			...rule,
-			id: `rule-${Date.now()}`, // In production, this would come from the backend
-		};
-		setRules((prevRules) => [...prevRules, newRule]);
-	};
-
-	if (isLoading) {
+	if (loading) {
 		return (
 			<div className='flex flex-1 flex-col gap-4 p-4'>
 				<div className='flex items-center justify-between'>
-					<Skeleton className='h-6 w-32' />
+					<Skeleton className='h-8 w-32' />
 					<div className='flex items-center gap-2'>
-						<Skeleton className='h-9 w-[180px]' />
-						<Skeleton className='h-9 w-[120px]' />
+						<Skeleton className='h-9 w-48' />
+						<Skeleton className='h-9 w-24' />
 					</div>
 				</div>
-				<div className='space-y-2'>
-					<Skeleton className='h-12 w-full' />
-					<Skeleton className='h-12 w-full' />
-					<Skeleton className='h-12 w-full' />
-				</div>
+				<Skeleton className='h-[500px] w-full' />
 			</div>
 		);
 	}
@@ -90,9 +89,23 @@ export default function AlertRulesPage() {
 			<DataTable
 				columns={columns}
 				data={rules}
-				onRowClick={handleRuleClick}
 				onRuleToggle={handleRuleToggle}
+				onRuleEdit={(ruleId) => {
+					const rule = rules.find((r) => r.id === ruleId);
+					if (rule) {
+						setSelectedRule(rule);
+						setEditDialogOpen(true);
+					}
+				}}
 			/>
+			{selectedRule && (
+				<EditRuleDialog
+					rule={selectedRule}
+					open={editDialogOpen}
+					onOpenChange={setEditDialogOpen}
+					onRuleEdit={handleRuleEdit}
+				/>
+			)}
 		</div>
 	);
 }

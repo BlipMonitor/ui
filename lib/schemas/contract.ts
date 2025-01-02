@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const contractSchema = z.object({
-	id: z.string().optional(), // For new contracts
+	id: z.string(), // Required for all contracts
 	contractId: z
 		.string()
 		.min(1, 'Contract ID is required')
@@ -19,6 +19,7 @@ export const contractSchema = z.object({
 export type Contract = z.infer<typeof contractSchema>;
 
 export const defaultContract: Contract = {
+	id: crypto.randomUUID(),
 	contractId: '',
 	friendlyName: '',
 	network: 'mainnet',

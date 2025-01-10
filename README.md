@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blip Monitor UI
+
+<div align="center">
+  <h3>Real-time monitoring dashboard for Soroban smart contracts</h3>
+</div>
+
+## Overview
+
+Blip Monitor is a developer-focused monitoring solution for Soroban smart contracts. It provides real-time visibility into contract performance, events, and health through an intuitive dashboard interface.
+
+### Key Features
+
+- 📊 **Real-time Event Monitoring**: Track contract events and transaction outcomes as they happen
+- 📈 **Performance Metrics**: Monitor gas usage and execution time with detailed charts
+- 🚨 **Smart Alerts**: Configure threshold-based alerts for failures, gas spikes, and more
+- 📱 **Developer-First UI**: Clean, dark-themed interface optimized for extended use
+- ⚡ **Quick Setup**: Start monitoring with just a Contract ID
+
+## Tech Stack
+
+- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
+- **Charts**: [Recharts](https://recharts.org/)
+- **State Management**: React Context + Server Components
+- **Form Handling**: React Hook Form + Zod
 
 ## Getting Started
 
-First, run the development server:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/BlipMonitor/ui.git
+   cd ui
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+2. **Install dependencies**
+   ```bash
+   pnpm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env.local
+   ```
+   Edit `.env.local` with your configuration.
+
+4. **Run the development server**
+   ```bash
+   pnpm dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) to view the dashboard.
+
+## Project Structure
+
+```
+ui/
+├── app/                   # Next.js app router pages
+│   ├── dashboard/        # Dashboard and metrics
+│   ├── activity/         # Activity feed
+│   ├── performance/      # Performance metrics
+│   ├── alerts/          # Alerts management
+│   └── settings/        # User settings
+├── components/           # React components
+│   ├── alerts/          # Alert-related components
+│   ├── charts/          # Chart components
+│   ├── common/          # Shared components
+│   └── ui/              # shadcn/ui components
+├── lib/                  # Utilities and hooks
+└── styles/              # Global styles
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Dashboard
+- Key metrics overview
+- Recent events feed
+- Gas usage trends
+- Active alerts banner
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Activity Feed
+- Real-time event log
+- Advanced filtering
+- Detailed event inspection
+- Success/failure tracking
 
-## Learn More
+### Performance
+- Gas usage analysis
+- Execution time metrics
+- Top calls analysis
+- Time range selection
 
-To learn more about Next.js, take a look at the following resources:
+### Alerts
+- Rule-based alerting
+- Multiple notification channels
+- Alert history
+- Quick acknowledgment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Settings
+- Contract management
+- Notification preferences
+- Profile settings
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Contributing
 
-## Deploy on Vercel
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Development Guidelines
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+- Ensure dark mode compatibility
+- Maintain responsive design
+- Write meaningful commit messages
+- Add proper documentation for new features
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support, email support@blip.watch or join our [Discord community](https://discord.gg/blipmonitor).

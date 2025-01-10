@@ -27,13 +27,17 @@ export default function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	const isScanMode = process.env.NEXT_PUBLIC_ENABLE_SCAN === 'true';
+
 	return (
 		<html lang='en'>
 			<head>
-				<script
-					src='https://unpkg.com/react-scan/dist/auto.global.js'
-					async
-				/>
+				{isScanMode && (
+					<script
+						src='https://unpkg.com/react-scan/dist/auto.global.js'
+						async
+					/>
+				)}
 			</head>
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}

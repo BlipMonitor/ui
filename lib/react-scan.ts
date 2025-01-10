@@ -2,11 +2,16 @@
 
 import { scan } from 'react-scan';
 
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+// Only enable React Scan when explicitly running in scan mode
+if (
+	typeof window !== 'undefined' &&
+	process.env.NODE_ENV === 'development' &&
+	process.env.NEXT_PUBLIC_ENABLE_SCAN === 'true'
+) {
 	scan({
 		enabled: true,
 		log: true,
-		report: true, // Enable report generation
+		report: true,
 		trackUnnecessaryRenders: true,
 		renderCountThreshold: 3,
 		showToolbar: true,

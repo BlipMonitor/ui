@@ -3,13 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { useHotkeys } from 'react-hotkeys-hook';
-import {
-	Settings2,
-	LayoutDashboard,
-	Activity,
-	LineChart,
-	Bell,
-} from 'lucide-react';
+import { Settings2, LayoutDashboard, Activity, LineChart } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -52,27 +46,6 @@ const data = {
 			hotkey: 'mod+shift+p',
 		},
 		{
-			title: 'Alerts',
-			url: '/dashboard/alerts',
-			icon: Bell,
-			shortcut: '⌘⇧C',
-			hotkey: 'mod+shift+c',
-			items: [
-				{
-					title: 'Overview',
-					url: '/dashboard/alerts',
-				},
-				{
-					title: 'Alert Feed',
-					url: '/dashboard/alerts/feed',
-				},
-				{
-					title: 'Rules',
-					url: '/dashboard/alerts/rules',
-				},
-			],
-		},
-		{
 			title: 'Settings',
 			url: '/dashboard/settings',
 			icon: Settings2,
@@ -86,10 +59,6 @@ const data = {
 				{
 					title: 'Contracts',
 					url: '/dashboard/settings/contracts',
-				},
-				{
-					title: 'Notifications',
-					url: '/dashboard/settings/notifications',
 				},
 			],
 		},

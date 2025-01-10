@@ -7,7 +7,7 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"scan": "next dev -p 3333 & sleep 5 && npx react-scan@latest http://localhost:3333"
+		"scan": "NEXT_PUBLIC_ENABLE_SCAN=true next dev -p 3333 & sleep 5 && npx react-scan@latest http://localhost:3333"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^3.10.0",

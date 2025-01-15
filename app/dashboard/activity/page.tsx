@@ -2,12 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
 } from '@/components/ui/popover';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { AlertCircle, CalendarIcon, RefreshCcw } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -141,7 +141,7 @@ export default function ActivityPage() {
 		<div className='flex flex-1 flex-col gap-4 p-4'>
 			<div className='flex items-center justify-between'>
 				<h1 className='text-lg font-medium'>Activity Feed</h1>
-				<div className='flex items-center gap-2'>
+				<div className='flex items-center gap-4'>
 					<Popover>
 						<PopoverTrigger asChild>
 							<Button
@@ -171,44 +171,45 @@ export default function ActivityPage() {
 							/>
 						</PopoverContent>
 					</Popover>
-					<ToggleGroup
-						type='single'
-						value={status}
-						onValueChange={(value) =>
-							setStatus(value as typeof status)
-						}
-						className='justify-start'
-					>
-						<ToggleGroupItem
-							value='all'
-							aria-label='Show all events'
+
+					<div className='flex flex-col gap-2'>
+						<div className='text-sm font-medium text-muted-foreground'>
+							Status
+						</div>
+						<Tabs
+							value={status}
+							onValueChange={(value) =>
+								setStatus(value as typeof status)
+							}
+							className='w-[400px]'
 						>
-							All Events
-						</ToggleGroupItem>
-						<ToggleGroupItem
-							value='success'
-							aria-label='Show successful events'
-						>
-							Success
-						</ToggleGroupItem>
-						<ToggleGroupItem
-							value='failure'
-							aria-label='Show failed events'
-						>
-							Failures
-						</ToggleGroupItem>
-						<ToggleGroupItem
-							value='pending'
-							aria-label='Show pending events'
-						>
-							Pending
-						</ToggleGroupItem>
-					</ToggleGroup>
-					<FunctionFilter
-						functions={uniqueFunctions}
-						selectedFunctions={selectedFunctions}
-						onSelectionChange={setSelectedFunctions}
-					/>
+							<TabsList className='grid w-full grid-cols-4'>
+								<TabsTrigger value='all'>
+									All Events
+								</TabsTrigger>
+								<TabsTrigger value='success'>
+									Success
+								</TabsTrigger>
+								<TabsTrigger value='failure'>
+									Failures
+								</TabsTrigger>
+								<TabsTrigger value='pending'>
+									Pending
+								</TabsTrigger>
+							</TabsList>
+						</Tabs>
+					</div>
+
+					<div className='flex flex-col gap-2'>
+						<div className='text-sm font-medium text-muted-foreground'>
+							Functions
+						</div>
+						<FunctionFilter
+							functions={uniqueFunctions}
+							selectedFunctions={selectedFunctions}
+							onSelectionChange={setSelectedFunctions}
+						/>
+					</div>
 				</div>
 			</div>
 

@@ -31,12 +31,12 @@ export function Metrics() {
 				href='/dashboard/performance'
 			/>
 			<MetricCard
-				title='Active Alerts'
+				title='Active Anomalies'
 				value='2'
 				icon={Activity}
 				trend={{ value: 100, isPositive: false }}
 				description='Last 24 hours'
-				href='/dashboard/alerts'
+				href='/dashboard/anomalies'
 			/>
 		</>
 	);

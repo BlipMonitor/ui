@@ -3,7 +3,13 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Settings2, LayoutDashboard, Activity, LineChart } from 'lucide-react';
+import {
+	Settings2,
+	LayoutDashboard,
+	Activity,
+	LineChart,
+	AlertTriangle,
+} from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -37,6 +43,13 @@ const data = {
 			icon: Activity,
 			shortcut: '⌘⇧A',
 			hotkey: 'mod+shift+a',
+		},
+		{
+			title: 'Anomalies',
+			url: '/dashboard/anomalies',
+			icon: AlertTriangle,
+			shortcut: '⌘⇧N',
+			hotkey: 'mod+shift+n',
 		},
 		{
 			title: 'Performance',

@@ -22,6 +22,7 @@ import {
 const breadcrumbTitles: { [key: string]: string } = {
 	dashboard: 'Home',
 	activity: 'Activity',
+	anomalies: 'Anomalies',
 	events: 'Events',
 	logs: 'Logs',
 	performance: 'Performance',

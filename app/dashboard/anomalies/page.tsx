@@ -17,30 +17,7 @@ import { DataTable } from './data-table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AnomalyDetailsDrawer } from '@/components/anomalies/anomaly-details-drawer';
-
-// Mock data - replace with API call later
-const mockAnomalies: Anomaly[] = [
-	{
-		id: '1',
-		timestamp: new Date('2024-01-15T10:30:00Z'),
-		type: 'Gas Usage Spike',
-		description: 'Gas usage 250% above baseline',
-		severity: 'high',
-		status: 'active',
-		metric: '2.5M gas',
-		threshold: '1M gas',
-	},
-	{
-		id: '2',
-		timestamp: new Date('2024-01-15T09:15:00Z'),
-		type: 'Error Rate Surge',
-		description: 'Error rate increased to 15%',
-		severity: 'critical',
-		status: 'active',
-		metric: '15%',
-		threshold: '5%',
-	},
-];
+import { generateMockAnomalies } from '@/lib/mock/anomalies';
 
 export default function AnomaliesPage() {
 	const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
@@ -57,7 +34,8 @@ export default function AnomaliesPage() {
 	// Load mock data
 	useEffect(() => {
 		try {
-			setAnomalies(mockAnomalies);
+			const mockData = generateMockAnomalies(20);
+			setAnomalies(mockData);
 			setIsLoading(false);
 		} catch {
 			setError('Failed to load anomalies data');
@@ -98,7 +76,8 @@ export default function AnomaliesPage() {
 		setIsLoading(true);
 		setError(null);
 		try {
-			setAnomalies(mockAnomalies);
+			const mockData = generateMockAnomalies(20);
+			setAnomalies(mockData);
 			setIsLoading(false);
 		} catch {
 			setError('Failed to refresh anomalies data');

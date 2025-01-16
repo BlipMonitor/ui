@@ -17,6 +17,7 @@ First off, thank you for considering contributing to Blip Monitor! It's people l
 1. **Fork and Clone**
    ```bash
    git clone https://github.com/BlipMonitor/ui.git
+   cd ui
    ```
 
 2. **Install Dependencies**

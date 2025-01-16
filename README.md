@@ -29,6 +29,7 @@ Blip Monitor is a developer-focused monitoring solution for Soroban smart contra
 1. **Clone the repository**
    ```bash
    git clone https://github.com/BlipMonitor/ui.git
+   cd ui
    ```
 
 2. **Install dependencies**

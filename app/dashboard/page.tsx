@@ -16,18 +16,12 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
-	// TODO: Replace with real data from API
-	const activeAnomalies = {
-		critical: 1,
-		high: 1,
-	};
-
 	return (
 		<div className='flex flex-1 flex-col gap-4 p-4'>
 			<div className='flex items-center justify-between'>
 				<h1 className='text-lg font-medium'>Overview</h1>
 			</div>
-			<ActiveAnomaliesBanner anomalies={activeAnomalies} />
+			<ActiveAnomaliesBanner />
 			<MetricGrid>
 				<Suspense
 					fallback={

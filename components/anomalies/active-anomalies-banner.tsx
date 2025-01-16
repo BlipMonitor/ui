@@ -1,55 +1,80 @@
 'use client';
 
-import * as React from 'react';
+import { Activity } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { generateMockAnomalies } from '@/lib/mock/anomalies';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
 
-interface ActiveAnomaliesBannerProps {
-	anomalies: {
-		critical: number;
-		high: number;
-	};
-}
+export function ActiveAnomaliesBanner() {
+	const [anomalyCounts, setAnomalyCounts] = useState({
+		critical: 0,
+		high: 0,
+		total: 0,
+	});
 
-export function ActiveAnomaliesBanner({
-	anomalies,
-}: ActiveAnomaliesBannerProps) {
-	const totalAnomalies = anomalies.critical + anomalies.high;
+	useEffect(() => {
+		// Generate mock anomalies and count by severity
+		const mockAnomalies = generateMockAnomalies(20);
+		const activeAnomalies = mockAnomalies.filter(
+			(a) => a.status === 'active'
+		);
 
-	if (totalAnomalies === 0) return null;
+		setAnomalyCounts({
+			critical: activeAnomalies.filter((a) => a.severity === 'critical')
+				.length,
+			high: activeAnomalies.filter((a) => a.severity === 'high').length,
+			total: activeAnomalies.length,
+		});
+	}, []);
 
-	const description = [
-		anomalies.critical > 0 && `${anomalies.critical} critical`,
-		anomalies.high > 0 && `${anomalies.high} high severity`,
-	]
-		.filter(Boolean)
-		.join(' and ');
+	if (anomalyCounts.total === 0) return null;
 
 	return (
 		<Link
 			href='/dashboard/anomalies'
-			className='block'
+			className='block hover:opacity-[0.98]'
 		>
 			<Alert
 				variant='destructive'
-				className={cn(
-					'bg-destructive text-destructive-foreground border-none',
-					'group hover:bg-destructive/90 transition-colors'
-				)}
+				className='cursor-pointer bg-red-500/90 text-white'
 			>
-				<AlertTriangle className='h-4 w-4 text-destructive-foreground' />
-				<AlertTitle className='flex items-center gap-2 text-destructive-foreground'>
-					Active Anomalies
-					<span className='inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive-foreground/20 px-1.5 text-xs font-medium'>
-						{totalAnomalies}
+				<Activity className='h-4 w-4' />
+				<AlertDescription className='flex items-center justify-between'>
+					<span>
+						{anomalyCounts.critical > 0 && (
+							<>
+								<Badge
+									variant='outline'
+									className='bg-white/20 text-white border-white/40 mr-2'
+								>
+									{anomalyCounts.critical} Critical
+								</Badge>
+							</>
+						)}
+						{anomalyCounts.high > 0 && (
+							<>
+								<Badge
+									variant='outline'
+									className='bg-white/20 text-white border-white/40 mr-2'
+								>
+									{anomalyCounts.high} High
+								</Badge>
+							</>
+						)}
+						{anomalyCounts.total} active{' '}
+						{anomalyCounts.total === 1 ? 'anomaly' : 'anomalies'}{' '}
+						detected
 					</span>
-				</AlertTitle>
-				<AlertDescription className='text-destructive-foreground/90'>
-					{totalAnomalies === 1
-						? `You have ${description} anomaly that requires attention`
-						: `You have ${description} anomalies that require attention`}
+					<Button
+						variant='outline'
+						size='sm'
+						className='bg-white/10 text-white hover:bg-white/20 border-white/40'
+					>
+						View All
+					</Button>
 				</AlertDescription>
 			</Alert>
 		</Link>

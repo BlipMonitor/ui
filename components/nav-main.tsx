@@ -70,7 +70,7 @@ export function NavMain({
 											{item.items.map((subItem) => {
 												const isSubActive =
 													subItem.url ===
-													'/dashboard/alerts'
+													'/dashboard/anomalies'
 														? pathname ===
 														  subItem.url
 														: pathname.startsWith(

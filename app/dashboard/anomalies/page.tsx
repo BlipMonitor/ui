@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -10,41 +11,22 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { AlertCircle, CalendarIcon, RefreshCcw } from 'lucide-react';
-import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { columns, type ActivityEvent } from './columns';
+import { columns, type Anomaly, type Severity } from './columns';
 import { DataTable } from './data-table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { EventDetailsDrawer } from '@/components/events/event-details-drawer';
-import { FunctionFilter } from '@/components/events/function-filter';
-import { generateMockEvents, type ContractEvent } from '@/lib/mock/events';
+import { AnomalyDetailsDrawer } from '@/components/anomalies/anomaly-details-drawer';
+import { generateMockAnomalies } from '@/lib/mock/anomalies';
 
-// Convert ContractEvent to ActivityEvent
-function convertToActivityEvent(event: ContractEvent): ActivityEvent {
-	return {
-		id: event.id,
-		timestamp: event.timestamp,
-		function: event.functionName || event.type,
-		status: event.status,
-		gasUsed: event.gasUsed?.toLocaleString() || '-',
-		executionTime: event.executionTime ? `${event.executionTime}ms` : '-',
-		transactionId: event.transactionHash,
-		blockNumber: event.transactionHash.slice(0, 8), // Mock block number from tx hash
-		errorMessage: event.error,
-	};
-}
-
-export default function ActivityPage() {
-	const [events, setEvents] = useState<ActivityEvent[]>([]);
+export default function AnomaliesPage() {
+	const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
 	const [date, setDate] = useState<Date>();
-	const [status, setStatus] = useState<
-		'all' | 'success' | 'failure' | 'pending'
-	>('all');
-	const [selectedFunctions, setSelectedFunctions] = useState<string[]>([]);
+	const [severity, setSeverity] = useState<'all' | Severity>('all');
+	const [status, setStatus] = useState<'all' | 'active' | 'resolved'>('all');
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
-	const [selectedEvent, setSelectedEvent] = useState<ActivityEvent | null>(
+	const [selectedAnomaly, setSelectedAnomaly] = useState<Anomaly | null>(
 		null
 	);
 	const [drawerOpen, setDrawerOpen] = useState(false);
@@ -52,51 +34,41 @@ export default function ActivityPage() {
 	// Load mock data
 	useEffect(() => {
 		try {
-			const mockEvents = generateMockEvents(50).map(
-				convertToActivityEvent
-			);
-			setEvents(mockEvents);
+			const mockData = generateMockAnomalies(20);
+			setAnomalies(mockData);
 			setIsLoading(false);
 		} catch {
-			setError('Failed to load activity data');
+			setError('Failed to load anomalies data');
 			setIsLoading(false);
 		}
 	}, []);
 
-	// Extract unique function names from actual data
-	const uniqueFunctions = Array.from(
-		new Set(events.map((event) => event.function))
-	).sort();
-
-	const filteredEvents = events.filter((event) => {
-		// First filter by status
-		if (status !== 'all' && event.status !== status) {
+	const filteredAnomalies = anomalies.filter((anomaly) => {
+		// Filter by severity
+		if (severity !== 'all' && anomaly.severity !== severity) {
 			return false;
 		}
 
-		// Then filter by selected functions
-		if (
-			selectedFunctions.length > 0 &&
-			!selectedFunctions.includes(event.function)
-		) {
+		// Filter by status
+		if (status !== 'all' && anomaly.status !== status) {
 			return false;
 		}
 
-		// Then filter by date if selected
+		// Filter by date if selected
 		if (date) {
-			const eventDate = new Date(event.timestamp);
+			const anomalyDate = new Date(anomaly.timestamp);
 			return (
-				eventDate.getFullYear() === date.getFullYear() &&
-				eventDate.getMonth() === date.getMonth() &&
-				eventDate.getDate() === date.getDate()
+				anomalyDate.getFullYear() === date.getFullYear() &&
+				anomalyDate.getMonth() === date.getMonth() &&
+				anomalyDate.getDate() === date.getDate()
 			);
 		}
 
 		return true;
 	});
 
-	const handleRowClick = (event: ActivityEvent) => {
-		setSelectedEvent(event);
+	const handleRowClick = (anomaly: Anomaly) => {
+		setSelectedAnomaly(anomaly);
 		setDrawerOpen(true);
 	};
 
@@ -104,13 +76,11 @@ export default function ActivityPage() {
 		setIsLoading(true);
 		setError(null);
 		try {
-			const mockEvents = generateMockEvents(50).map(
-				convertToActivityEvent
-			);
-			setEvents(mockEvents);
+			const mockData = generateMockAnomalies(20);
+			setAnomalies(mockData);
 			setIsLoading(false);
 		} catch {
-			setError('Failed to refresh activity data');
+			setError('Failed to refresh anomalies data');
 			setIsLoading(false);
 		}
 	};
@@ -140,7 +110,7 @@ export default function ActivityPage() {
 	return (
 		<div className='flex flex-1 flex-col gap-4 p-4'>
 			<div className='flex items-center justify-between'>
-				<h1 className='text-lg font-medium'>Activity Feed</h1>
+				<h1 className='text-lg font-medium'>Anomalies</h1>
 				<div className='flex items-center gap-4'>
 					<Popover>
 						<PopoverTrigger asChild>
@@ -174,27 +144,22 @@ export default function ActivityPage() {
 
 					<div className='flex flex-col gap-2'>
 						<div className='text-sm font-medium text-muted-foreground'>
-							Status
+							Severity
 						</div>
 						<Tabs
-							value={status}
+							value={severity}
 							onValueChange={(value) =>
-								setStatus(value as typeof status)
+								setSeverity(value as typeof severity)
 							}
 							className='w-[400px]'
 						>
-							<TabsList className='grid w-full grid-cols-4'>
-								<TabsTrigger value='all'>
-									All Events
-								</TabsTrigger>
-								<TabsTrigger value='success'>
-									Success
-								</TabsTrigger>
-								<TabsTrigger value='failure'>
-									Failures
-								</TabsTrigger>
-								<TabsTrigger value='pending'>
-									Pending
+							<TabsList className='grid w-full grid-cols-5'>
+								<TabsTrigger value='all'>All</TabsTrigger>
+								<TabsTrigger value='low'>Low</TabsTrigger>
+								<TabsTrigger value='medium'>Medium</TabsTrigger>
+								<TabsTrigger value='high'>High</TabsTrigger>
+								<TabsTrigger value='critical'>
+									Critical
 								</TabsTrigger>
 							</TabsList>
 						</Tabs>
@@ -202,13 +167,23 @@ export default function ActivityPage() {
 
 					<div className='flex flex-col gap-2'>
 						<div className='text-sm font-medium text-muted-foreground'>
-							Functions
+							Status
 						</div>
-						<FunctionFilter
-							functions={uniqueFunctions}
-							selectedFunctions={selectedFunctions}
-							onSelectionChange={setSelectedFunctions}
-						/>
+						<Tabs
+							value={status}
+							onValueChange={(value) =>
+								setStatus(value as typeof status)
+							}
+							className='w-[300px]'
+						>
+							<TabsList className='grid w-full grid-cols-3'>
+								<TabsTrigger value='all'>All</TabsTrigger>
+								<TabsTrigger value='active'>Active</TabsTrigger>
+								<TabsTrigger value='resolved'>
+									Resolved
+								</TabsTrigger>
+							</TabsList>
+						</Tabs>
 					</div>
 				</div>
 			</div>
@@ -233,11 +208,11 @@ export default function ActivityPage() {
 				<>
 					<DataTable
 						columns={columns}
-						data={filteredEvents}
+						data={filteredAnomalies}
 						onRowClick={handleRowClick}
 					/>
-					<EventDetailsDrawer
-						event={selectedEvent}
+					<AnomalyDetailsDrawer
+						anomaly={selectedAnomaly}
 						open={drawerOpen}
 						onOpenChange={setDrawerOpen}
 					/>

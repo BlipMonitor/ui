@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { ChevronsUpDown, Plus, Code2 } from 'lucide-react';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { faker } from '@faker-js/faker';
 
 import {
 	DropdownMenu,
@@ -21,49 +22,45 @@ import {
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { AddContractDialog } from '@/components/contracts/add-contract-dialog';
+import { generateMockContracts } from '@/lib/mock/contracts';
 
-// Sample contract data - in real app, this would come from API/localStorage
-const sampleContracts = [
-	{
-		name: 'Token Contract',
-		contractId: 'CACT...X4WY',
-		network: 'mainnet',
-	},
-	{
-		name: 'Liquidity Pool',
-		contractId: 'CBXC...L9MN',
-		network: 'mainnet',
-	},
-	{
-		name: 'NFT Marketplace',
-		contractId: 'CDEF...K3PQ',
-		network: 'testnet',
-	},
-];
+// Set a fixed seed for consistent mock data generation
+faker.seed(123);
 
 export function ContractSwitcher() {
 	const { isMobile } = useSidebar();
-	const [activeContract, setActiveContract] = React.useState(
-		sampleContracts[0]
-	);
+	// Generate contracts only once and memoize the result
+	const [contracts] = React.useState(() => {
+		// Reset the seed before generating contracts to ensure consistency
+		faker.seed(123);
+		return generateMockContracts(5);
+	});
+	const [activeContract, setActiveContract] = React.useState(contracts[0]);
 	const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
 	// Load stored contract on client-side only
 	React.useEffect(() => {
 		const stored = localStorage.getItem('activeContract');
 		if (stored) {
-			setActiveContract(JSON.parse(stored));
+			const parsedContract = JSON.parse(stored);
+			// Find the matching contract from our generated list to maintain consistency
+			const matchingContract = contracts.find(
+				(c) => c.id === parsedContract.id
+			);
+			if (matchingContract) {
+				setActiveContract(matchingContract);
+			}
 		}
-	}, []);
+	}, [contracts]);
 
 	// Persist selected contract to localStorage
 	React.useEffect(() => {
 		localStorage.setItem('activeContract', JSON.stringify(activeContract));
 	}, [activeContract]);
 
-	// Create hotkey combinations for numbers 1-9
+	// Create hotkey combinations for numbers 1-5 (since we generate 5 contracts)
 	const hotkeyString = Array.from(
-		{ length: 9 },
+		{ length: contracts.length },
 		(_, i) => `mod+${i + 1}`
 	).join(', ');
 
@@ -74,8 +71,8 @@ export function ContractSwitcher() {
 			const num = e.key.match(/\d/)?.[0];
 			if (num) {
 				const index = parseInt(num) - 1;
-				if (index >= 0 && index < sampleContracts.length) {
-					setActiveContract(sampleContracts[index]);
+				if (index >= 0 && index < contracts.length) {
+					setActiveContract(contracts[index]);
 				}
 			}
 		},
@@ -83,7 +80,7 @@ export function ContractSwitcher() {
 			preventDefault: true,
 			enableOnFormTags: true,
 		},
-		[setActiveContract]
+		[setActiveContract, contracts]
 	);
 
 	const getShortcutKey = (index: number) => {
@@ -91,6 +88,12 @@ export function ContractSwitcher() {
 			return `⌘${index + 1}`;
 		}
 		return null;
+	};
+
+	// Helper function to truncate contract ID
+	const truncateContractId = (contractId: string) => {
+		if (contractId.length <= 12) return contractId;
+		return `${contractId.slice(0, 4)}...${contractId.slice(-4)}`;
 	};
 
 	return (
@@ -110,11 +113,13 @@ export function ContractSwitcher() {
 							</div>
 							<div className='grid flex-1 text-left text-sm leading-tight'>
 								<span className='truncate font-semibold'>
-									{activeContract.name}
+									{activeContract.friendlyName}
 								</span>
 								<div className='flex items-center gap-2'>
 									<span className='truncate text-xs font-mono'>
-										{activeContract.contractId}
+										{truncateContractId(
+											activeContract.contractId
+										)}
 									</span>
 									<span
 										className={cn(
@@ -139,9 +144,9 @@ export function ContractSwitcher() {
 						<DropdownMenuLabel className='text-xs text-muted-foreground'>
 							Contracts
 						</DropdownMenuLabel>
-						{sampleContracts.map((contract, index) => (
+						{contracts.map((contract, index) => (
 							<DropdownMenuItem
-								key={contract.contractId}
+								key={contract.id}
 								onClick={() => setActiveContract(contract)}
 								className='gap-2 p-2'
 							>
@@ -150,9 +155,11 @@ export function ContractSwitcher() {
 								</div>
 								<div className='flex flex-1 items-center gap-2'>
 									<div className='flex-1'>
-										<div>{contract.name}</div>
+										<div>{contract.friendlyName}</div>
 										<div className='text-xs font-mono text-muted-foreground'>
-											{contract.contractId}
+											{truncateContractId(
+												contract.contractId
+											)}
 										</div>
 									</div>
 									<span

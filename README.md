@@ -12,7 +12,7 @@ Blip Monitor is a developer-focused monitoring solution for Soroban smart contra
 
 - 📊 **Real-time Event Monitoring**: Track contract events and transaction outcomes as they happen
 - 📈 **Performance Metrics**: Monitor gas usage and execution time with detailed charts
-- 🚨 **Smart Alerts**: Configure threshold-based alerts for failures, gas spikes, and more
+- 🔍 **Auto-detected Anomalies**: Get notified of critical and high severity anomalies in your contracts
 - 📱 **Developer-First UI**: Clean, dark-themed interface optimized for extended use
 - ⚡ **Quick Setup**: Start monitoring with just a Contract ID
 
@@ -58,10 +58,10 @@ ui/
 │   ├── dashboard/        # Dashboard and metrics
 │   ├── activity/         # Activity feed
 │   ├── performance/      # Performance metrics
-│   ├── alerts/          # Alerts management
+│   ├── anomalies/       # Auto-detected anomalies
 │   └── settings/        # User settings
 ├── components/           # React components
-│   ├── alerts/          # Alert-related components
+│   ├── anomalies/       # Anomaly-related components
 │   ├── charts/          # Chart components
 │   ├── common/          # Shared components
 │   └── ui/              # shadcn/ui components
@@ -75,7 +75,7 @@ ui/
 - Key metrics overview
 - Recent events feed
 - Gas usage trends
-- Active alerts banner
+- Active anomalies banner
 
 ### Activity Feed
 - Real-time event log
@@ -89,11 +89,11 @@ ui/
 - Top calls analysis
 - Time range selection
 
-### Alerts
-- Rule-based alerting
-- Multiple notification channels
-- Alert history
-- Quick acknowledgment
+### Anomalies
+- Auto-detected contract anomalies
+- Severity-based classification
+- Detailed anomaly inspection
+- Quick filtering and search
 
 ### Settings
 - Contract management
